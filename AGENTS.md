@@ -4,7 +4,7 @@ Contexto para asistentes de código (Claude Code, Copilot, Cursor, etc.) que tra
 
 ## Qué es este proyecto
 
-Proyecto final del máster **AI4Devs** (LIDR). El objetivo es construir un producto completo usando asistentes de IA en todas las fases del ciclo de desarrollo, y documentarlo.
+Proyecto final del máster **AI4Devs 2026/06 Rookies** (LIDR). Consiste en desarrollar un producto de software de inicio a fin, integrando IA en **todas las fases**: idea y documentación, código, testing y despliegue. Debe ser un proyecto real y funcional que aplique lo aprendido en el máster. El dominio es libre; en este caso, un módulo inspirado en el trabajo real del alumno. Dedicación estimada: unas 30 horas en total.
 
 ### Necesidad (driver)
 
@@ -34,6 +34,69 @@ En código se usa `requester` en lugar de `user` para no confundir el rol con la
 
 > Pendiente: PRD y requisitos (tipo de ticket, campos, flujo, permisos por rol, alcance del MVP).
 
+## Entregas
+
+| # | Contenido | Rama | Fecha |
+|---|-----------|------|-------|
+| 1 | **Documentación técnica:** ficha del proyecto, descripción, arquitectura, modelo de datos, historias de usuario y tickets de trabajo. | `feature/entrega-1-PLL` | Jueves 24/09/2026 |
+| 2 | **Código funcional:** backend, frontend y BD conectados. El flujo principal operativo, aunque no esté 100 % completo. | `feature/entrega-2-PLL` | Jueves 22/10/2026 |
+| 3 | **Entrega final:** código funcional + tests (unitarios, integración, E2E) + despliegue + documentación de IA (`prompts.md`) + evidencia de funcionamiento. | `final-project-PLL` | Jueves 12/11/2026 |
+
+Las entregas 1 y 2 tienen **revisión automatizada**. Solo la entrega final recibe feedback humano personalizado.
+
+### Criterios de evaluación
+
+El proyecto final es uno de los cuatro criterios para obtener el certificado. Se evalúa en tres ejes:
+
+1. **Idea y arquitectura** del producto.
+2. **Calidad del código.**
+3. **Uso de la IA** a lo largo de todo el proceso (registro en `prompts.md`).
+
+### Alcance del MVP
+
+- Un MVP robusto, no una pantalla con un botón: al menos **un flujo end-to-end completo** con backend, frontend y base de datos.
+- Entre **3 y 5 historias de usuario must-have** y **1-2 should-have**.
+- La entrega final debe tener entre 3 y 5 funcionalidades completas, tests (unitarios, integración y al menos un E2E del flujo principal) y evidencia de despliegue (URL pública, capturas o vídeo).
+- No hace falta aplicar todo lo visto en el máster: se prioriza que el producto funcione y que se vea cómo se usó la IA.
+
+### Entrega 1 en detalle (fase actual)
+
+**Es 100 % documentación: todavía no hay código.** No generes scaffolding ni código de aplicación salvo que se pida explícitamente.
+
+Qué hay que tener en `readme.md` en la rama `feature/entrega-1-PLL`:
+
+| Qué se pide | Sección de `readme.md` |
+|-------------|------------------------|
+| Ficha del proyecto: nombre, descripción, URL del repo | 0 |
+| Descripción del producto: objetivo, características y funcionalidades | 1.1, 1.2 |
+| Arquitectura del sistema y stack tecnológico elegido | 2 (sobre todo 2.1, 2.2 y 2.3) |
+| Modelo de datos (diagrama mermaid con PK/FK y descripción de entidades) | 3 |
+| Historias de usuario (3-5 must-have + 1-2 should-have; en el readme se documentan 3) | 5 |
+| Tickets de trabajo (uno de backend, uno de frontend y uno de base de datos) | 6 |
+
+Opcional, pero recomendable adelantarlo: especificación de la API (sección 4, máximo 3 endpoints en OpenAPI). Las secciones 1.3 (diseño y UX), 1.4 (instalación), 2.4 a 2.6 (despliegue, seguridad, tests) y 7 (pull requests) se completan en entregas posteriores.
+
+Además, conviene ir registrando en `prompts.md` los prompts usados para generar esta documentación.
+
+Para cerrar la entrega, el alumno abre la **pull request** de la rama y rellena el formulario de entrega indicando la URL de esa PR. En el repositorio oficial, en la sección de Pull Requests, hay ejemplos de entregas de ediciones anteriores.
+
+### Cómo se entrega
+
+- El repositorio es un **fork** del repositorio oficial `AI4Devs-finalproject`.
+- Cada entrega va en su propia rama, con las iniciales del alumno (**PLL**). Los nombres de rama de la tabla son obligatorios: sin las iniciales la entrega no se puede identificar.
+- Tras cada entrega, el alumno rellena el formulario de entrega del máster (Typeform): nombre, email, tipo de entrega y **URL de la pull request**. Sin formulario, la entrega no existe formalmente. Lo hace el alumno, no un agente.
+- Si no se llega a la fecha final, se puede pedir una prórroga de hasta 2 semanas (hasta el jueves 26/11/2026), con antelación y al TA.
+
+### Qué debe contener `prompts.md`
+
+Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo de pegar prompts, sino de documentar el **flujo de trabajo con IA**. No hace falta registrar todos los prompts, solo los clave:
+
+- Herramientas usadas (Claude Code, Cursor, ChatGPT, etc.).
+- Modelos y para qué se usó cada uno (p. ej. uno para especificaciones y otro para programar).
+- Skills, subagentes, rules o comandos personalizados, si se usaron (este `AGENTS.md` cuenta).
+- Los prompts o workflows más representativos.
+- Qué ajustes humanos hubo que hacer sobre lo que generó la IA.
+
 ## Estructura del repositorio
 
 | Ruta | Propósito |
@@ -61,7 +124,7 @@ En código se usa `requester` en lugar de `user` para no confundir el rol con la
 ## Convenciones
 
 - **Idioma:** la documentación, los commits y la comunicación van en español. El código (identificadores, nombres de ficheros) va en inglés.
-- **Ramas:** el trabajo se hace en ramas `feature/<descripcion>` y se integra en `main` mediante pull request. La rama de la primera entrega es `feature/entrega-1-PLL`.
+- **Ramas:** cada entrega tiene su rama obligatoria (ver "Entregas"). No renombres ni borres esas ramas.
 - **Commits:** mensajes cortos en español, en imperativo (p. ej. "Añadir modelo de datos de tickets").
 - **Documentación:** al tomar una decisión relevante (arquitectura, modelo de datos, API, etc.), actualiza la sección correspondiente de `readme.md`. Si surge de un prompt significativo, regístralo en `prompts.md`.
 - No subas configuración local del IDE (`.idea/` está en `.gitignore`) ni secretos.
