@@ -6,9 +6,33 @@ Contexto para asistentes de código (Claude Code, Copilot, Cursor, etc.) que tra
 
 Proyecto final del máster **AI4Devs** (LIDR). El objetivo es construir un producto completo usando asistentes de IA en todas las fases del ciclo de desarrollo, y documentarlo.
 
-**Producto:** una herramienta de gestión de tickets de un único tipo de issue. Es como un Jira Service Management, pero especializado en un tipo de petición concreto en lugar de ser genérico.
+### Necesidad (driver)
 
-> Pendiente de definir: tipo de ticket, usuarios y roles, ciclo de vida (estados, aprobaciones, SLA) y alcance del MVP.
+Una empresa usa **Jira Service Management (JSM) Data Center** on-premise, y Atlassian ha anunciado su fin de vida (EOL). Hay que sustituirlo.
+
+### Solución
+
+Una **aplicación web** que gestiona el tipo de ticket que la empresa tiene implementado hoy en JSM. Es una versión deliberadamente sencilla:
+
+- **Un solo tipo de ticket** (issue).
+- **Un formulario fijo**, con campos fijos.
+- **Un flujo fijo** (workflow de estados).
+
+No es un clon genérico de JSM: no hay tipos de issue, formularios ni workflows configurables. Si una funcionalidad solo tiene sentido con configurabilidad genérica, queda fuera de alcance salvo que los requisitos digan lo contrario.
+
+Los detalles concretos (campos del formulario, estados y transiciones, roles y permisos) se definen en el PRD y en los requisitos.
+
+### Stakeholders y roles
+
+| Rol | Identificador en código | Descripción |
+|-----|-------------------------|-------------|
+| Usuario | `requester` | Peticionario: abre tickets. |
+| Agente | `agent` | Operador: atiende y resuelve los tickets. |
+| Supervisor | `supervisor` | Revisa informes sobre los tickets. Rol previsto, aún por confirmar su alcance. |
+
+En código se usa `requester` en lugar de `user` para no confundir el rol con la entidad `User`, que representa a cualquier persona con cuenta (sea cual sea su rol).
+
+> Pendiente: PRD y requisitos (tipo de ticket, campos, flujo, permisos por rol, alcance del MVP).
 
 ## Estructura del repositorio
 
@@ -21,7 +45,18 @@ Proyecto final del máster **AI4Devs** (LIDR). El objetivo es construir un produ
 
 ## Stack técnico
 
-> Pendiente de decidir: backend, frontend, base de datos, infraestructura y despliegue.
+| Capa | Tecnología |
+|------|------------|
+| Frontend | React |
+| Backend | AdonisJS |
+| Bundler | Vite |
+| Linter / formatter | Biome |
+| Base de datos | PostgreSQL |
+
+- **Lenguaje:** TypeScript en front y back (AdonisJS v6 es TypeScript nativo).
+- **Linter y formatter:** Biome es la única herramienta de lint y formato. No añadas ESLint ni Prettier, aunque las plantillas de AdonisJS o React los incluyan por defecto.
+
+> Pendiente: cómo se integran front y back (SPA separada con API REST o AdonisJS + Inertia), ORM, autenticación, tests, infraestructura y despliegue.
 
 ## Convenciones
 
