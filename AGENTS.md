@@ -8,7 +8,9 @@ Proyecto final del máster **AI4Devs 2026/06 Rookies** (LIDR). Consiste en desar
 
 ### Necesidad (driver)
 
-Una empresa usa **Jira Service Management (JSM) Data Center** on-premise, y Atlassian ha anunciado su fin de vida (EOL). Hay que sustituirlo.
+Una empresa usa **Jira Service Management (JSM) Data Center** on-premise, y Atlassian ha anunciado su fin de vida (EOL). Hay que sustituirlo, y **no se quiere migrar a JSM Cloud**.
+
+Por eso la aplicación debe poder **desplegarse on-premise**, en infraestructura propia, sin depender de servicios SaaS para funcionar.
 
 ### Solución
 
@@ -20,19 +22,22 @@ Una **aplicación web** que gestiona el tipo de ticket que la empresa tiene impl
 
 No es un clon genérico de JSM: no hay tipos de issue, formularios ni workflows configurables. Si una funcionalidad solo tiene sentido con configurabilidad genérica, queda fuera de alcance salvo que los requisitos digan lo contrario.
 
-Los detalles concretos (campos del formulario, estados y transiciones, roles y permisos) se definen en el PRD y en los requisitos.
+**La fuente de verdad de los requisitos es [`PRD/PRD.md`](PRD/PRD.md)**: alcance, campos, cálculo de prioridad, flujo de estados y permisos, incluidos los puntos pendientes. Resumen:
+
+- **Tipo de ticket:** `Request` (único).
+- **Alcance:** CRUD de tickets, lista, Kanban, detalle, filtros (en lista y Kanban) y explotación de la información mediante un **agente de IA** (dashboards: por decidir).
+- **Campos:** id, tipo, título, descripción, reporter, assignee, estado, fecha de creación, urgencia (1-5), impacto (1-5), prioridad (automática, 1-5, a partir de urgencia × impacto), historial (automático) y comentarios con fecha.
+- **Flujo:** `Open → Assigned → In progress → Solved → Closed`, con los estados alternativos `Pending user` y `Canceled`.
 
 ### Stakeholders y roles
 
-| Rol | Identificador en código | Descripción |
-|-----|-------------------------|-------------|
-| Usuario | `requester` | Peticionario: abre tickets. |
-| Agente | `agent` | Operador: atiende y resuelve los tickets. |
-| Supervisor | `supervisor` | Revisa informes sobre los tickets. Rol previsto, aún por confirmar su alcance. |
+| Rol | Identificador en código | Descripción y permisos |
+|-----|-------------------------|------------------------|
+| Usuario | `requester` | Peticionario. Abre, cancela y cierra tickets. |
+| Agente (operador) | `agent` | Atiende los tickets. Se asigna tickets y los pasa a *In progress*, *Pending user*, *Canceled* y *Solved*. |
+| Supervisor | `supervisor` | Todo lo del agente y, además, asigna tickets a un agente. También revisa la información de los tickets. |
 
-En código se usa `requester` en lugar de `user` para no confundir el rol con la entidad `User`, que representa a cualquier persona con cuenta (sea cual sea su rol).
-
-> Pendiente: PRD y requisitos (tipo de ticket, campos, flujo, permisos por rol, alcance del MVP).
+En código se usa `requester` en lugar de `user` para no confundir el rol con la entidad `User`, que representa a cualquier persona con cuenta (sea cual sea su rol). En el ticket, el `reporter` es el usuario que lo abrió y el `assignee` el agente asignado.
 
 ## Entregas
 
@@ -103,6 +108,7 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 |------|-----------|
 | `readme.md` | Documentación entregable del proyecto (plantilla oficial del máster): ficha, producto, arquitectura, modelo de datos, API, historias de usuario, tickets y PRs. |
 | `prompts.md` | Registro de los prompts principales usados con asistentes de IA, organizados por las mismas secciones que `readme.md` (máximo 3 por sección). |
+| `PRD/PRD.md` | Documento de requisitos de producto (fuente de verdad). Los puntos pendientes se concretarán en documentos de requisitos que lo detallan. |
 | `AGENTS.md` | Este archivo. Contexto para agentes. |
 | `CLAUDE.md` | Enlace simbólico a `AGENTS.md`. |
 
@@ -119,7 +125,9 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 - **Lenguaje:** TypeScript en front y back (AdonisJS v6 es TypeScript nativo).
 - **Linter y formatter:** Biome es la única herramienta de lint y formato. No añadas ESLint ni Prettier, aunque las plantillas de AdonisJS o React los incluyan por defecto.
 
-> Pendiente: cómo se integran front y back (SPA separada con API REST o AdonisJS + Inertia), ORM, autenticación, tests, infraestructura y despliegue.
+- **Despliegue:** on-premise. Evita dependencias de servicios cloud gestionados que no se puedan autoalojar.
+
+> Pendiente: cómo se integran front y back (SPA separada con API REST o AdonisJS + Inertia), ORM, autenticación, proveedor/modelo del agente de IA (debe ser compatible con el despliegue on-premise), tests e infraestructura.
 
 ## Convenciones
 
