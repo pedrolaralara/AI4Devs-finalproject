@@ -520,7 +520,383 @@ Ejemplo: cuando un operador pasa el ticket 42 de `assigned` a `in_progress`, se 
 
 ## 4. Especificación de la API
 
-> Si tu backend se comunica a través de API, describe los endpoints principales (máximo 3) en formato OpenAPI. Opcionalmente puedes añadir un ejemplo de petición y de respuesta para mayor claridad
+Se documentan los tres endpoints que sostienen el flujo principal: **crear un ticket** (HU-01), **listar tickets con filtros** (HU-02 y HU-05) y **cambiar el estado de un ticket** (HU-04).
+
+Esta especificación es el **contrato de diseño** de la entrega 1. En el código, la especificación OpenAPI se generará a partir de las rutas, los validadores y los comentarios de los controllers con `adonis-autoswagger`, y se publicará con Scalar en `/docs`.
+
+**Convenciones comunes:**
+- Todas las rutas van bajo `/api` y usan JSON con claves en *camelCase*.
+- **Autenticación por sesión:** cookie `HttpOnly` obtenida en el login (ver [ADR](docs/adr/20260924-autenticacion-por-sesion-con-cookie.md)). Sin sesión, la respuesta es `401`.
+- **CSRF:** las peticiones que modifican datos (`POST`) envían la cabecera `X-XSRF-TOKEN` con el valor de la cookie `XSRF-TOKEN`.
+- **Errores de validación (`422`):** siguen el formato de VineJS, con una lista `errors` de `{ field, rule, message }`. Los errores de negocio usan `{ code, message }`.
+
+```yaml
+openapi: 3.0.3
+info:
+  title: Requesto API
+  version: 0.1.0
+  description: API REST de Requesto, gestión de tickets de tipo Request.
+servers:
+  - url: /api
+security:
+  - sessionCookie: []
+
+paths:
+  /tickets:
+    post:
+      tags: [Tickets]
+      summary: Crear un ticket
+      description: >
+        Crea un ticket de tipo `request` en estado `open`. Solo pueden crearlo
+        los usuarios con rol `requester`. El reporter es el usuario de la sesión,
+        y la prioridad se calcula a partir de la urgencia y el impacto.
+      operationId: createTicket
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+            example:
+              title: Alta de acceso a la VPN para un nuevo empleado
+              description: Necesito acceso a la VPN para Ana García, que se incorpora el lunes al equipo de Finanzas.
+              urgency: 4
+              impact: 3
+      responses:
+        '201':
+          description: Ticket creado.
+          headers:
+            Location:
+              description: URL del ticket creado.
+              schema: { type: string, example: /api/tickets/42 }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+              example:
+                id: 42
+                key: REQ-42
+                type: request
+                title: Alta de acceso a la VPN para un nuevo empleado
+                description: Necesito acceso a la VPN para Ana García, que se incorpora el lunes al equipo de Finanzas.
+                status: open
+                urgency: 4
+                impact: 3
+                priority: 3
+                reporter: { id: 12, fullName: Laura Martín }
+                assignee: null
+                solvedAt: null
+                closedAt: null
+                createdAt: '2026-10-05T09:14:03Z'
+                updatedAt: '2026-10-05T09:14:03Z'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+    get:
+      tags: [Tickets]
+      summary: Listar tickets con filtros
+      description: >
+        Devuelve una página de tickets visibles para el usuario de la sesión,
+        filtrados y ordenados. La usan la lista y el Kanban.
+      operationId: listTickets
+      parameters:
+        - name: status
+          in: query
+          description: Uno o varios estados, separados por comas.
+          schema: { type: string, example: 'open,assigned,in_progress' }
+        - name: priority
+          in: query
+          description: Una o varias prioridades (1-5), separadas por comas.
+          schema: { type: string, example: '4,5' }
+        - name: assigneeId
+          in: query
+          description: Id del operador asignado. `me` para los tickets asignados al usuario de la sesión; `none` para los no asignados.
+          schema: { type: string, example: me }
+        - name: reporterId
+          in: query
+          description: Id del reporter. `me` para los tickets abiertos por el usuario de la sesión.
+          schema: { type: string, example: '12' }
+        - name: q
+          in: query
+          description: Texto a buscar en el título y la descripción.
+          schema: { type: string, maxLength: 100 }
+        - name: sort
+          in: query
+          description: Campo de orden; con `-` delante, descendente.
+          schema:
+            type: string
+            enum: [-priority, priority, -createdAt, createdAt, -updatedAt, updatedAt]
+            default: -priority
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: perPage
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+      responses:
+        '200':
+          description: Página de tickets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketPage'
+              example:
+                meta: { total: 57, perPage: 25, currentPage: 1, lastPage: 3 }
+                data:
+                  - id: 42
+                    key: REQ-42
+                    type: request
+                    title: Alta de acceso a la VPN para un nuevo empleado
+                    description: Necesito acceso a la VPN para Ana García…
+                    status: assigned
+                    urgency: 4
+                    impact: 5
+                    priority: 4
+                    reporter: { id: 12, fullName: Laura Martín }
+                    assignee: { id: 7, fullName: Carlos Ruiz }
+                    solvedAt: null
+                    closedAt: null
+                    createdAt: '2026-10-05T09:14:03Z'
+                    updatedAt: '2026-10-05T10:02:41Z'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /tickets/{id}/transitions:
+    post:
+      tags: [Workflow]
+      summary: Cambiar el estado de un ticket
+      description: >
+        Aplica una transición del flujo (`open → assigned → in_progress → solved → closed`,
+        más `pending_user` y `canceled`). La máquina de estados del backend valida que la
+        transición exista y que el rol del usuario la permita. El cambio y su registro en
+        el historial se guardan en la misma transacción.
+      operationId: transitionTicket
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+        - $ref: '#/components/parameters/XsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransitionRequest'
+            examples:
+              resolver:
+                summary: El operador asignado resuelve el ticket
+                value: { to: solved }
+              asignar:
+                summary: Un supervisor asigna el ticket a un operador
+                value: { to: assigned, assigneeId: 7 }
+      responses:
+        '200':
+          description: Transición aplicada. Devuelve el ticket actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: El rol del usuario no permite esta transición.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                code: FORBIDDEN_TRANSITION
+                message: Solo el operador asignado o un supervisor pueden pasar este ticket a solved.
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: El ticket cambió de estado mientras tanto. Hay que recargarlo y reintentar.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                code: STALE_TICKET
+                message: El ticket ya no está en in_progress.
+        '422':
+          description: La transición no existe en el flujo o el cuerpo no es válido.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Error'
+                  - $ref: '#/components/schemas/ValidationErrors'
+              example:
+                code: INVALID_TRANSITION
+                message: No existe la transición open → solved.
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: adonis-session
+      description: Cookie de sesión HttpOnly creada en el login.
+
+  parameters:
+    TicketId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1, example: 42 }
+    XsrfToken:
+      name: X-XSRF-TOKEN
+      in: header
+      required: true
+      description: Valor de la cookie `XSRF-TOKEN` (protección CSRF).
+      schema: { type: string }
+
+  schemas:
+    TicketStatus:
+      type: string
+      enum: [open, assigned, in_progress, pending_user, solved, closed, canceled]
+
+    UserSummary:
+      type: object
+      required: [id, fullName]
+      properties:
+        id: { type: integer, example: 7 }
+        fullName: { type: string, example: Carlos Ruiz }
+
+    CreateTicketRequest:
+      type: object
+      required: [title, description, urgency, impact]
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, minLength: 1 }
+        urgency: { type: integer, minimum: 1, maximum: 5 }
+        impact: { type: integer, minimum: 1, maximum: 5 }
+
+    TransitionRequest:
+      type: object
+      required: [to]
+      additionalProperties: false
+      properties:
+        to: { $ref: '#/components/schemas/TicketStatus' }
+        assigneeId:
+          type: integer
+          description: >
+            Operador al que se asigna el ticket. Obligatorio si `to` es `assigned`
+            y quien lo pide es un supervisor. Un operador solo puede asignárselo
+            a sí mismo: puede omitirlo o enviar su propio id; cualquier otro id
+            devuelve `403`.
+
+    Ticket:
+      type: object
+      required: [id, key, type, title, description, status, urgency, impact, priority, reporter, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        key: { type: string, description: 'Identificador visible, `REQ-<id>`.', example: REQ-42 }
+        type: { type: string, enum: [request] }
+        title: { type: string }
+        description: { type: string }
+        status: { $ref: '#/components/schemas/TicketStatus' }
+        urgency: { type: integer, minimum: 1, maximum: 5 }
+        impact: { type: integer, minimum: 1, maximum: 5 }
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+          readOnly: true
+          description: 'Calculada: `ceil(urgency × impact / 5)`.'
+        reporter: { $ref: '#/components/schemas/UserSummary' }
+        assignee:
+          allOf: [{ $ref: '#/components/schemas/UserSummary' }]
+          nullable: true
+        solvedAt: { type: string, format: date-time, nullable: true }
+        closedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    TicketPage:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          type: object
+          properties:
+            total: { type: integer }
+            perPage: { type: integer }
+            currentPage: { type: integer }
+            lastPage: { type: integer }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Ticket' }
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: INVALID_TRANSITION }
+        message: { type: string }
+
+    ValidationErrors:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string, example: urgency }
+              rule: { type: string, example: range }
+              message: { type: string, example: La urgencia debe estar entre 1 y 5. }
+
+  responses:
+    Unauthorized:
+      description: No hay sesión iniciada.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: UNAUTHENTICATED, message: Inicia sesión para continuar. }
+    Forbidden:
+      description: El rol del usuario no permite la operación.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: FORBIDDEN, message: Solo los usuarios con rol requester pueden abrir tickets. }
+    NotFound:
+      description: El ticket no existe o el usuario no puede verlo.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: NOT_FOUND, message: Ticket no encontrado. }
+    ValidationError:
+      description: El cuerpo o los parámetros no son válidos.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ValidationErrors' }
+```
+
+**Ejemplo de uso del flujo principal:**
+
+```bash
+# 1. Un usuario abre un ticket
+curl -X POST https://requesto.local/api/tickets \
+  -b cookies.txt -H "X-XSRF-TOKEN: $XSRF" -H "Content-Type: application/json" \
+  -d '{"title":"Alta de acceso a la VPN","description":"Para Ana García, de Finanzas.","urgency":4,"impact":3}'
+# → 201 { "id": 42, "key": "REQ-42", "status": "open", "priority": 3, ... }
+
+# 2. Un operador ve los tickets abiertos de mayor prioridad
+curl "https://requesto.local/api/tickets?status=open&sort=-priority" -b cookies.txt
+# → 200 { "meta": { "total": 8, ... }, "data": [ { "id": 42, ... } ] }
+
+# 3. El operador se asigna el ticket
+curl -X POST https://requesto.local/api/tickets/42/transitions \
+  -b cookies.txt -H "X-XSRF-TOKEN: $XSRF" -H "Content-Type: application/json" \
+  -d '{"to":"assigned"}'
+# → 200 { "id": 42, "status": "assigned", "assignee": { "id": 7, "fullName": "Carlos Ruiz" }, ... }
+
+# 4. Intentar saltarse el flujo
+curl -X POST https://requesto.local/api/tickets/42/transitions \
+  -b cookies.txt -H "X-XSRF-TOKEN: $XSRF" -H "Content-Type: application/json" \
+  -d '{"to":"closed"}'
+# → 422 { "code": "INVALID_TRANSITION", "message": "No existe la transición assigned → closed." }
+```
 
 ---
 

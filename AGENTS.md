@@ -133,6 +133,7 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 - **Integración front-back:** el frontend es una **SPA** (React + Vite) independiente que consume una **API REST** expuesta por AdonisJS. No se usa Inertia.
 
 - **Backend:** AdonisJS 7 con Lucid (ORM), VineJS (validación), `@adonisjs/auth` con guard de sesión (cookie `HttpOnly`) y `@adonisjs/bouncer` (autorización por rol). Capas: controllers finos → `app/services/` (dominio: máquina de estados, prioridad, historial) → modelos. Las reglas de flujo y permisos viven solo en los servicios y las políticas, nunca en el frontend.
+- **Contrato de la API:** rutas bajo `/api`, JSON con claves en *camelCase*, errores de validación en formato VineJS (`422`) y errores de negocio como `{ code, message }`. El contrato de diseño está en la sección 4 del `readme.md`.
 - **Frontend:** React Router, TanStack Query y dnd-kit (Kanban). Estructura por funcionalidad en `src/features/`.
 - **Agente de IA:** módulo `app/agent/` del backend. Usa *tool calling* con herramientas **de solo lectura** que reutilizan los servicios de dominio y respetan los permisos del usuario. Nunca genera SQL libre. El proveedor del LLM es configurable por variables de entorno.
 - **Tests:** Japa (unitarios y funcionales de la API), Vitest + Testing Library (componentes), Playwright (E2E).
