@@ -146,6 +146,8 @@ Se completarán en la entrega 2, cuando exista el código.
 
 ## 2. Arquitectura del Sistema
 
+> Esta sección resume la arquitectura para la entrega. El documento completo (atributos de calidad, componentes, flujos de login y del agente de IA, despliegue, conceptos transversales y riesgos) está en [`ARQUITECTURA.md`](ARQUITECTURA.md).
+
 ### **2.1. Diagrama de arquitectura:**
 
 Los diagramas siguen el modelo **C4**: primero el contexto (quién usa el sistema y con qué se relaciona) y después los contenedores y componentes internos.
@@ -212,7 +214,7 @@ sequenceDiagram
 
     Op->>SPA: Pulsa "Resolver" (o arrastra la tarjeta a Solved)
     SPA->>API: POST /api/tickets/42/transitions { to: "solved" }
-    API->>API: Valida sesión y cuerpo (VineJS)
+    API->>API: Valida sesión, CSRF y cuerpo (VineJS)
     API->>Pol: ¿Puede este usuario cambiar el estado del ticket 42?
     alt Sin permiso
         Pol-->>API: No
@@ -225,11 +227,16 @@ sequenceDiagram
             API-->>SPA: 422 Unprocessable Entity
         else Transición válida
             SM->>DB: BEGIN
-            SM->>DB: UPDATE tickets SET status = 'solved', solved_at = now()
-            SM->>DB: INSERT ticket_events (status_changed, in_progress → solved)
-            SM->>DB: COMMIT
-            API-->>SPA: 200 OK + ticket actualizado
-            SPA-->>Op: Muestra el nuevo estado y el historial
+            SM->>DB: UPDATE tickets SET status = 'solved', solved_at = now()<br/>WHERE id = 42 AND status = 'in_progress'
+            alt 0 filas actualizadas (otro lo cambió antes)
+                SM->>DB: ROLLBACK
+                API-->>SPA: 409 Conflict
+            else 1 fila actualizada
+                SM->>DB: INSERT ticket_events (status_changed, in_progress → solved)
+                SM->>DB: COMMIT
+                API-->>SPA: 200 OK + ticket actualizado
+                SPA-->>Op: Muestra el nuevo estado y el historial
+            end
         end
     end
 ```
@@ -240,6 +247,7 @@ sequenceDiagram
 - **El dominio es pequeño y cerrado** (un tipo de ticket, un flujo fijo). Un monolito bien organizado es suficiente, y los microservicios solo añadirían complejidad operativa en un despliegue on-premise.
 - **Una sola API para todos los consumidores.** La SPA y el agente de IA usan los mismos servicios de dominio, así que las reglas de permisos y de flujo se aplican igual en ambos casos.
 - **Reglas de negocio en el backend.** El frontend solo muestra las acciones permitidas; la validación real (transiciones, permisos, cálculo de prioridad) ocurre siempre en el servidor.
+- **Reglas críticas también en la base de datos.** Restricciones `CHECK` y FK, y la prioridad como columna generada: los datos son correctos aunque falle una capa superior.
 - **Despliegue on-premise sencillo:** tres contenedores (proxy, API y base de datos) sin servicios gestionados de la nube.
 
 **Beneficios:**
@@ -284,32 +292,35 @@ El repositorio es un **monorepo** con dos aplicaciones (`api` y `web`) gestionad
 ```
 AI4Devs-finalproject/
 ├── apps/
-│   ├── api/                    # Backend AdonisJS (API REST)
+│   ├── api/                    # Backend AdonisJS 7 (API REST)
 │   │   ├── app/
-│   │   │   ├── controllers/    # Capa HTTP: recibe la petición y delega
+│   │   │   ├── controllers/    # Capa HTTP: valida, autoriza y delega
 │   │   │   ├── validators/     # Esquemas VineJS de entrada
 │   │   │   ├── policies/       # Autorización por rol (Bouncer)
 │   │   │   ├── services/       # Lógica de dominio: flujo, prioridad, historial
 │   │   │   ├── models/         # Modelos Lucid (User, Ticket, Comment, TicketEvent)
+│   │   │   ├── exceptions/     # Errores de dominio y exception handler
 │   │   │   └── agent/          # Agente de IA: cliente LLM y tools de solo lectura
+│   │   ├── config/             # Configuración, incluida la de adonis-autoswagger
 │   │   ├── database/
 │   │   │   ├── migrations/     # Esquema de la base de datos
 │   │   │   └── seeders/        # Datos de ejemplo (usuarios por rol, tickets)
 │   │   ├── start/routes.ts     # Definición de rutas /api/*
-│   │   └── tests/              # Tests unitarios y funcionales (Japa)
-│   └── web/                    # Frontend React + Vite (SPA)
+│   │   └── tests/              # unit/ y functional/ (Japa)
+│   └── web/                    # Frontend React 19 + Vite (SPA)
 │       ├── src/
 │       │   ├── api/            # Cliente HTTP y hooks de TanStack Query
 │       │   ├── features/       # Módulos por funcionalidad: tickets, kanban, auth, agent
 │       │   ├── components/     # Componentes de UI reutilizables
 │       │   ├── routes/         # Páginas y enrutado (React Router)
 │       │   └── lib/            # Utilidades compartidas
-│       └── tests/              # Tests de componentes (Vitest + Testing Library)
+│       └── tests/              # Tests de componentes (Vitest + Testing Library + MSW)
 ├── e2e/                        # Tests end-to-end (Playwright)
 ├── docker/                     # Dockerfiles y configuración de Nginx
 ├── docker-compose.yml          # Entorno local y despliegue on-premise
 ├── PRD/                        # Requisitos de producto
 ├── docs/adr/                   # Decisiones de arquitectura (ADRs, formato MADR)
+├── ARQUITECTURA.md             # Documento completo de arquitectura
 ├── biome.json                  # Lint y formato comunes
 ├── AGENTS.md / CLAUDE.md       # Contexto para asistentes de IA
 ├── readme.md                   # Documentación del proyecto
