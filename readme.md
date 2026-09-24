@@ -676,13 +676,164 @@ Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester
 
 ## 6. Tickets de Trabajo
 
-> Documenta 3 de los tickets de trabajo principales del desarrollo, uno de backend, uno de frontend, y uno de bases de datos. Da todo el detalle requerido para desarrollar la tarea de inicio a fin teniendo en cuenta las buenas prácticas al respecto. 
+Tickets derivados de las historias de la sección 5: uno de **base de datos** (HU-01), uno de **backend** (HU-04) y uno de **frontend** (HU-05). Todos comparten esta *Definition of Done*:
+
+- Código revisado en una pull request contra la rama de la entrega, con Biome y el chequeo de tipos (`tsc --noEmit`) en verde.
+- Tests nuevos en verde y ningún test existente roto.
+- Documentación actualizada en la misma PR (readme, OpenAPI, TSDoc o ADR, según aplique).
+
+---
 
 **Ticket 1**
 
+#### REQ-DB-01 · Esquema inicial de base de datos: usuarios, tickets, comentarios e historial
+
+| Tipo | Historia | Estimación | Prioridad | Depende de |
+|------|----------|------------|-----------|------------|
+| Base de datos | HU-01 (y base de HU-02 a HU-05) | 3 SP | Must · bloqueante | Proyecto `apps/api` con AdonisJS 7 y Lucid configurado contra PostgreSQL |
+
+**Objetivo:** crear las migraciones, los modelos Lucid y los seeders del modelo de datos de la sección 3, para que el resto de tickets pueda trabajar sobre un esquema estable.
+
+**Alcance:**
+
+1. **Migración de tipos enumerados:** `user_role`, `ticket_status` y `ticket_event_type`, con los valores de la sección 3.1.
+2. **Migración `users`:** columnas y restricciones de la sección 3.2 (`email` único y en minúsculas, `is_active` por defecto `true`).
+3. **Migración `tickets`:**
+   - `priority` como columna generada: `smallint GENERATED ALWAYS AS (ceil(urgency * impact / 5.0)) STORED` (ver [ADR](docs/adr/20260924-prioridad-como-columna-generada.md)).
+   - `CHECK (urgency BETWEEN 1 AND 5)`, `CHECK (impact BETWEEN 1 AND 5)` y `CHECK (type = 'request')`.
+   - `CHECK (status IN ('open', 'canceled') OR assignee_id IS NOT NULL)`.
+   - FKs `reporter_id` y `assignee_id` → `users.id` con `ON DELETE RESTRICT`.
+   - Índices en `status`, `assignee_id`, `reporter_id`, `priority` y `created_at`.
+4. **Migración `comments`:** FK a `tickets` con `ON DELETE CASCADE`, FK a `users` con `RESTRICT`, índice `(ticket_id, created_at)`.
+5. **Migración `ticket_events`:** mismas FKs que `comments`, índice `(ticket_id, created_at)`. Sin `updated_at` (tabla de solo inserción).
+6. **Modelos Lucid** `User`, `Ticket`, `Comment` y `TicketEvent`, con relaciones (`belongsTo`, `hasMany`) y enums de TypeScript para roles, estados y tipos de evento. En `Ticket`, `priority` es de solo lectura y se refresca tras cada `save()`.
+7. **Seeders de desarrollo:** 1 supervisor, 2 operadores y 3 usuarios (contraseña común documentada solo para desarrollo), y unos 20 tickets repartidos por todos los estados, con comentarios y eventos coherentes.
+
+**Criterios de aceptación:**
+
+- `node ace migration:run` crea el esquema completo en una base vacía, y `node ace migration:rollback --batch=0` lo elimina sin errores.
+- Insertar un ticket con urgencia 4 e impacto 5 devuelve `priority = 4`, y actualizar la urgencia a 5 la recalcula a `5`.
+- La base de datos rechaza: urgencia o impacto fuera de 1-5, un `type` distinto de `request`, un ticket en `in_progress` sin assignee y un email duplicado.
+- Borrar un usuario con tickets falla (`RESTRICT`). Borrar un ticket elimina sus comentarios y eventos.
+- `node ace db:seed` deja datos navegables para todas las pantallas del MVP.
+
+**Tests (Japa, contra PostgreSQL de test):**
+
+- Tabla de casos de la prioridad (1×1 → 1, 1×5 → 1, 2×3 → 2, 3×5 → 3, 4×5 → 4, 5×5 → 5).
+- Un test por cada restricción `CHECK`, `UNIQUE` y FK anterior.
+- Migrar, hacer rollback y volver a migrar sin errores.
+
+**Notas técnicas:**
+
+- Consulta la documentación de Lucid para AdonisJS 7 con Context7 antes de escribir las migraciones (sintaxis de enums nativos y columnas generadas).
+- Si Lucid no soporta la columna generada con su *schema builder*, usa `this.schema.raw()` en la migración.
+
+---
+
 **Ticket 2**
 
+#### REQ-BE-01 · Endpoint de transiciones de estado y asignación con máquina de estados
+
+| Tipo | Historia | Estimación | Prioridad | Depende de |
+|------|----------|------------|-----------|------------|
+| Backend | HU-04 | 5 SP | Must | REQ-DB-01, autenticación por sesión (HU-00) |
+
+**Objetivo:** implementar en la API las reglas del flujo de la sección 1.2, de forma que sean la **única fuente de verdad** de qué transiciones existen y quién puede hacerlas. La usarán el detalle del ticket y el Kanban.
+
+**Alcance:**
+
+1. **`app/services/ticket_workflow.ts` (máquina de estados, sin dependencias HTTP):**
+   - Tabla declarativa de transiciones: `from`, `to` y roles permitidos.
+
+     | Desde | Hacia | Roles |
+     |-------|-------|-------|
+     | `open` | `assigned` | `agent` (a sí mismo), `supervisor` (a cualquier operador activo) |
+     | `assigned` | `assigned` (reasignar) | `supervisor` |
+     | `assigned` | `in_progress` | `agent` asignado, `supervisor` |
+     | `in_progress` | `pending_user` | `agent` asignado, `supervisor` |
+     | `pending_user` | `in_progress` | `agent` asignado, `supervisor` |
+     | `in_progress` | `solved` | `agent` asignado, `supervisor` |
+     | `solved` | `closed` | `requester` (reporter del ticket) |
+     | `open`, `assigned`, `in_progress`, `pending_user` | `canceled` | `requester` (reporter), `agent` asignado, `supervisor` |
+
+   - `availableTransitions(ticket, user)`: devuelve las transiciones que el usuario puede hacer ahora.
+   - `transition(ticket, user, to, { assigneeId? })`: valida, aplica el cambio y registra el historial **en una sola transacción**: `UPDATE` del ticket, `solved_at`/`closed_at` cuando corresponda, y `INSERT` en `ticket_events` (`status_changed` y, si cambia el assignee, `assigned`).
+   - Errores de dominio tipados: `InvalidTransitionError` (la transición no existe) y `ForbiddenTransitionError` (el rol no la permite).
+2. **Política Bouncer `TicketPolicy`:** `view` y `transition`, que delegan en la máquina de estados.
+3. **Validador VineJS `transitionValidator`:** `to` ∈ `ticket_status`; `assigneeId` obligatorio solo si `to = 'assigned'` y quien lo pide es `supervisor`.
+4. **Endpoints en `TicketTransitionsController`:**
+   - `GET /api/tickets/:id/transitions` → `200` con `[{ to, requiresAssignee }]`, las transiciones disponibles para el usuario actual.
+   - `POST /api/tickets/:id/transitions` con `{ to, assigneeId? }` → `200` con el ticket actualizado.
+   - Errores: `401` sin sesión, `404` si el ticket no existe o no es visible, `403` si el rol no permite la transición, `422` si la transición no existe o el cuerpo no es válido (formato de error de VineJS), `409` si el ticket cambió mientras tanto.
+5. **Concurrencia:** el `UPDATE` incluye el estado de origen (`WHERE id = ? AND status = ?`). Si no actualiza ninguna fila, se responde `409 Conflict`.
+6. **Documentación:** comentarios `@summary`, `@requestBody` y `@responseBody` (incluidos `403`, `409` y `422`) para `adonis-autoswagger`, y TSDoc en los métodos públicos del servicio.
+
+**Criterios de aceptación:**
+
+- Todas las filas de la tabla de transiciones funcionan para los roles permitidos, y cualquier otra combinación devuelve `403` o `422` sin modificar el ticket.
+- Un operador no asignado no puede mover el ticket de otro operador (`403`); un supervisor sí.
+- Al asignar, el assignee debe ser un usuario activo con rol `agent` o `supervisor`. Si no, `422`.
+- Cada transición correcta crea exactamente un evento `status_changed` (y uno `assigned` si cambia el assignee) con actor, valor anterior y nuevo.
+- `solved_at` se rellena al pasar a `solved`; `closed_at`, al pasar a `closed` o `canceled`.
+- Dos peticiones simultáneas sobre el mismo ticket: una devuelve `200` y la otra `409`.
+
+**Tests:**
+
+- **Unitarios (Japa):** la tabla completa de la máquina de estados, generada a partir de todas las combinaciones de estado × destino × rol, y comprobando que solo pasan las permitidas.
+- **Funcionales (Japa + PostgreSQL de test):** flujo completo `open → assigned → in_progress → pending_user → in_progress → solved → closed`, más un caso por cada código de error (`401`, `403`, `404`, `409`, `422`).
+
+**Notas técnicas:**
+
+- Los controllers no contienen reglas de negocio: validan, autorizan y delegan en `ticket_workflow`.
+- Los errores de dominio se traducen a HTTP en el *exception handler* global.
+- Consulta con Context7 la API de Bouncer y de transacciones de Lucid en AdonisJS 7.
+
+---
+
 **Ticket 3**
+
+#### REQ-FE-01 · Tablero Kanban con filtros y arrastrar y soltar
+
+| Tipo | Historia | Estimación | Prioridad | Depende de |
+|------|----------|------------|-----------|------------|
+| Frontend | HU-05 | 5 SP | Must | REQ-BE-01, `GET /api/tickets` con filtros (HU-02) |
+
+**Objetivo:** construir la vista Kanban de `apps/web` para que operadores y supervisores vean los tickets por estado y los muevan arrastrándolos, respetando siempre el flujo y los permisos que devuelve la API.
+
+**Alcance:**
+
+1. **Ruta `/kanban`** (React Router), accesible solo para `agent` y `supervisor`. Un `requester` que entra se redirige a la lista.
+2. **Datos (TanStack Query):**
+   - `useTickets(filters)` → `GET /api/tickets?status=...&priority=...&assigneeId=...&reporterId=...&q=...`.
+   - `useTransitionTicket()` → `POST /api/tickets/:id/transitions`, con **actualización optimista**: mueve la tarjeta al instante, revierte si hay error e invalida la consulta al terminar.
+3. **Componentes en `src/features/kanban/`:**
+   - `KanbanBoard`: columnas `Open`, `Assigned`, `In progress`, `Pending user` y `Solved`, con contador. `Closed` y `Canceled` aparecen solo si se activa el filtro "Mostrar finalizados".
+   - `KanbanCard`: `REQ-<id>`, título, prioridad con color por nivel, avatar o iniciales del assignee y antigüedad ("hace 3 días"). Se ordenan por prioridad descendente y, después, por antigüedad.
+   - `KanbanFilters`: prioridad, assignee, reporter, texto y "Mis tickets". Los filtros se guardan en los parámetros de la URL y se reutilizan de la lista (HU-02).
+   - `AssigneePicker`: modal para que el supervisor elija operador al soltar en `Assigned`.
+4. **Arrastrar y soltar (dnd-kit):**
+   - Al empezar a arrastrar, se piden las transiciones disponibles de la tarjeta (`GET /api/tickets/:id/transitions`, en caché) y solo se resaltan como destino las columnas permitidas. Las demás se atenúan y no aceptan la tarjeta.
+   - Accesible con teclado (sensores de teclado de dnd-kit) y con anuncios para lectores de pantalla.
+5. **Errores:** si la API responde `403`, `409` o `422`, la tarjeta vuelve a su columna y se muestra un aviso con el motivo. En `409` se recarga el tablero.
+6. **Estados de carga y vacío:** esqueleto mientras carga, mensaje "No hay tickets con estos filtros" si no hay resultados.
+
+**Criterios de aceptación:**
+
+- Se cumplen los criterios de aceptación 1 a 7 de HU-05.
+- Un operador solo puede soltar una tarjeta en columnas cuya transición le devuelve la API. El frontend no replica la tabla de transiciones.
+- Al soltar en `Assigned`, el operador se asigna el ticket directamente y el supervisor elige operador en el `AssigneePicker`.
+- Recargar la página con filtros en la URL muestra el mismo tablero.
+- Se puede mover una tarjeta usando solo el teclado.
+
+**Tests:**
+
+- **Componentes (Vitest + Testing Library + MSW para simular la API):** renderizado de columnas y contadores; filtros que actualizan la URL y la consulta; reversión de la tarjeta y aviso cuando la API devuelve `422`; el `AssigneePicker` aparece solo para el supervisor.
+- **E2E (Playwright):** un operador arrastra un ticket de `Open` a `Assigned` y luego a `In progress`, y el cambio persiste tras recargar.
+
+**Notas técnicas:**
+
+- Sin librerías de UI pesadas: componentes propios en `src/components/` y estilos del proyecto.
+- Si hay muchos tickets en una columna, paginar o virtualizar queda fuera de este ticket; se abrirá otro si hace falta.
 
 ---
 
