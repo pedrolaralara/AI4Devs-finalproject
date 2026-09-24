@@ -526,22 +526,46 @@ Ejemplo: cuando un operador pasa el ticket 42 de `assigned` a `in_progress`, se 
 
 ## 5. Historias de Usuario
 
+### Épicas
+
+| Épica | Objetivo | Historias | Talla | Riesgos que pueden hacerla crecer |
+|-------|----------|-----------|-------|-----------------------------------|
+| **E1 · Ciclo de vida del ticket** | Que un ticket nazca, avance por el flujo con los permisos correctos y se pueda seguir en lista, detalle y Kanban. | HU-00 a HU-05 | L | Concurrencia en los cambios de estado; reglas de visibilidad aún por concretar en los requisitos. |
+| **E2 · Explotación de la información** | Que supervisores y operadores obtengan respuestas sobre los tickets sin construir informes a mano. | HU-06, HU-07 | M → L | Elección del proveedor LLM compatible con on-premise; calidad del *tool calling* en modelos locales; si el dashboard lo genera el agente o es propio. |
+
 ### Backlog del MVP
 
-| Id | Historia | Prioridad (MoSCoW) | Estimación |
-|----|----------|--------------------|------------|
-| HU-00 | Autenticación y roles (base técnica) | Must | 3 SP |
-| **HU-01** | **Crear un ticket** | Must | 3 SP |
-| HU-02 | Lista de tickets con filtros | Must | 5 SP |
-| HU-03 | Detalle del ticket con comentarios e historial | Must | 5 SP |
-| **HU-04** | **Gestionar el flujo de un ticket** | Must | 8 SP |
-| **HU-05** | **Kanban de tickets** | Must | 5 SP |
-| HU-06 | Consultar la información de los tickets con un agente de IA | Should | 8 SP |
-| HU-07 | Dashboard de tickets | Should | 5 SP |
+| Id | Épica | Historia | Prioridad (MoSCoW) | Estimación | Complejidad / riesgo |
+|----|-------|----------|--------------------|------------|----------------------|
+| HU-00 | E1 | Autenticación y roles (base técnica) | Must | 3 SP | Baja: resuelto por `@adonisjs/auth` y Bouncer. |
+| **HU-01** | E1 | **Crear un ticket** | Must | 3 SP | Baja: CRUD con validación. |
+| HU-02 | E1 | Lista de tickets con filtros | Must | 5 SP | Media: combinación de filtros, paginación y búsqueda por texto. |
+| HU-03 | E1 | Detalle del ticket con comentarios e historial | Must | 5 SP | Media: agrega tres fuentes (ticket, comentarios, eventos). |
+| **HU-04** | E1 | **Gestionar el flujo de un ticket** | Must | 8 SP | **Alta**: máquina de estados × roles, transacciones y concurrencia. Es el corazón del dominio. |
+| **HU-05** | E1 | **Kanban de tickets** | Must | 5 SP | Media-alta: arrastrar y soltar accesible, actualización optimista y reversión. |
+| HU-06 | E2 | Consultar la información de los tickets con un agente de IA | Should | 8 SP | **Alta**: integración con LLM, diseño de herramientas, permisos y proveedor por decidir. |
+| HU-07 | E2 | Dashboard de tickets | Should | 5 SP | Media: depende de la decisión dashboard propio frente a generado por el agente. |
 
 Se documentan en detalle las tres historias en negrita: cubren el ciclo completo del ticket (nace, avanza por el flujo y se visualiza) y de ellas salen los tickets de trabajo de la sección 6.
 
-Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester`), **operador** (`agent`) y **supervisor** (`supervisor`).
+**Estimación:** *story points* en escala Fibonacci para historias y tallas de camiseta (S, M, L, XL) para épicas. No se estima en horas. La columna de complejidad existe para que historias con el mismo formato no parezcan igual de sencillas.
+
+**INVEST:** todas las historias del backlog se han revisado contra INVEST (independiente, negociable, valiosa, estimable, pequeña y testeable). HU-04 y HU-06 son las más grandes (8 SP). Si al refinarlas para la entrega 2 superan ese tamaño, se dividirán (p. ej. HU-04 en "asignación" y "transiciones de estado").
+
+**Roles:** **usuario** (`requester`), **operador** (`agent`) y **supervisor** (`supervisor`).
+
+**Leyenda:** los criterios marcados con **(asumido)** no vienen de los requisitos del PRD, sino de supuestos razonables tomados al redactar las historias. Deben confirmarse al concretar los requisitos.
+
+### Plan por entregas
+
+| Entrega | Objetivo | Historias comprometidas | Opcionales (si sobra capacidad) |
+|---------|----------|-------------------------|---------------------------------|
+| **2 · 22/10/2026** | *"Un usuario abre un ticket y un operador lo lleva hasta resuelto, de principio a fin, con backend, frontend y base de datos conectados."* | HU-00, HU-01, HU-03, HU-04 (19 SP) | HU-02 |
+| **3 · 12/11/2026** | *"El MVP completo, probado y desplegado on-premise."* | HU-02, HU-05, tests unitarios, de integración y E2E del flujo principal, despliegue con Docker Compose (10 SP + calidad y despliegue) | HU-06 y después HU-07 |
+
+- Se compromete solo lo que cabe con un **colchón del 30 %** sobre la capacidad estimada. La revisión del código generado con IA, los errores y los cambios en las herramientas consumen tiempo que no aparece en la estimación.
+- Las should-have (HU-06 y HU-07) son el colchón de alcance: se hacen si el flujo principal está terminado y probado.
+- El plan es un documento vivo: al cerrar cada entrega se reestiman las tallas con lo aprendido.
 
 ---
 
@@ -553,7 +577,7 @@ Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester
 **quiero** abrir una petición indicando qué necesito, su urgencia y su impacto,
 **para** que el equipo de operadores la atienda con la prioridad adecuada.
 
-**Prioridad:** Must · **Estimación:** 3 SP · **Depende de:** HU-00
+**Épica:** E1 · **Prioridad:** Must · **Estimación:** 3 SP · **Depende de:** HU-00
 
 **Criterios de aceptación:**
 
@@ -567,20 +591,27 @@ Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester
    - **entonces** su prioridad es `ceil(4 × 5 / 5) = 4`, y no se puede introducir a mano.
 3. **Validación de campos**
    - **Dado** el formulario de creación,
-   - **cuando** dejo vacío el título o la descripción, el título supera 200 caracteres, o la urgencia o el impacto están fuera de 1-5,
+   - **cuando** dejo vacío el título o la descripción, el título supera 200 caracteres **(asumido)**, o la urgencia o el impacto están fuera de 1-5,
    - **entonces** el ticket no se crea y veo un mensaje de error junto a cada campo inválido. El backend aplica la misma validación y responde `422`.
 4. **Historial**
    - **Dado** que se ha creado un ticket,
    - **cuando** consulto su historial,
    - **entonces** aparece un evento `created` con mi usuario como autor.
-5. **Permisos**
+5. **Permisos (asumido)**
    - **Dado** que soy operador o supervisor,
    - **cuando** intento crear un ticket desde la API,
    - **entonces** recibo `403` (solo los usuarios abren tickets).
 
-**Notas:**
+**Fuera de alcance:**
+- Adjuntar ficheros al ticket.
+- Editar el ticket después de crearlo.
+- Crear tickets en nombre de otra persona.
+- Notificaciones por email al crear el ticket.
+
+**Notas (contexto técnico):**
 - Campos del formulario: título (obligatorio, máximo 200 caracteres), descripción (obligatoria), urgencia (1-5) e impacto (1-5), con una breve explicación de cada nivel.
-- Mientras se rellenan urgencia e impacto, el formulario muestra la prioridad resultante como vista previa.
+- Mientras se rellenan urgencia e impacto, el formulario muestra la prioridad resultante como vista previa. La fuente de verdad es la columna generada en PostgreSQL (ver [ADR](docs/adr/20260924-prioridad-como-columna-generada.md)).
+- Tickets de trabajo relacionados: REQ-DB-01.
 
 ---
 
@@ -592,7 +623,7 @@ Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester
 **quiero** asignarme tickets y moverlos por los estados del flujo hasta resolverlos,
 **para** que el usuario sepa en todo momento en qué punto está su petición.
 
-**Prioridad:** Must · **Estimación:** 8 SP · **Depende de:** HU-01, HU-03
+**Épica:** E1 · **Prioridad:** Must · **Estimación:** 8 SP · **Depende de:** HU-01, HU-03
 
 **Criterios de aceptación:**
 
@@ -601,35 +632,52 @@ Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester
    - **cuando** un operador pulsa "Asignarme",
    - **entonces** el ticket pasa a `Assigned` con ese operador como assignee.
 2. **Asignar a otro operador (supervisor)**
-   - **Dado** un ticket en `Open` o `Assigned`,
+   - **Dado** un ticket en `Open` o en `Assigned` **(asumido: reasignación)**,
    - **cuando** un supervisor lo asigna a un operador activo,
    - **entonces** ese operador pasa a ser el assignee y el ticket queda en `Assigned`.
-   - Un operador que intenta asignar un ticket a otra persona recibe `403`.
-3. **Transiciones del operador**
+3. **Asignar a otro sin permiso**
+   - **Dado** un ticket en `Open`,
+   - **cuando** un operador intenta asignarlo a otra persona,
+   - **entonces** recibe `403` y el ticket no cambia.
+4. **Transiciones del operador**
    - **Dado** un ticket asignado,
    - **cuando** el operador o supervisor lo mueve a `In progress`, `Pending user`, `Solved` o `Canceled`,
    - **entonces** el cambio solo se aplica si la transición existe en el flujo:
-     `Assigned → In progress`, `In progress ↔ Pending user`, `In progress → Solved`, y `Open | Assigned | In progress | Pending user → Canceled`.
-4. **Acciones del usuario**
-   - **Dado** un ticket del que soy reporter,
-   - **cuando** está en `Solved` y pulso "Cerrar", **entonces** pasa a `Closed`;
-   - **cuando** está en un estado no final y pulso "Cancelar", **entonces** pasa a `Canceled`.
-5. **Transiciones inválidas**
+     `Assigned → In progress`, `In progress ↔ Pending user`, `In progress → Solved`, y `Open | Assigned | In progress | Pending user → Canceled` **(asumido: desde qué estados se cancela)**.
+5. **Cerrar un ticket resuelto**
+   - **Dado** un ticket en `Solved` del que soy reporter,
+   - **cuando** pulso "Cerrar",
+   - **entonces** pasa a `Closed`.
+6. **Cancelar un ticket propio (asumido: en cualquier estado no final)**
+   - **Dado** un ticket del que soy reporter en `Open`, `Assigned`, `In progress` o `Pending user`,
+   - **cuando** pulso "Cancelar",
+   - **entonces** pasa a `Canceled`.
+7. **Transiciones inválidas**
    - **Dado** un ticket en un estado cualquiera,
    - **cuando** alguien pide una transición que no existe (p. ej. `Open → Solved`) o que su rol no permite (p. ej. un usuario pide `In progress`),
    - **entonces** el backend la rechaza (`422` si la transición no existe, `403` si no tiene permiso) y el ticket no cambia.
-6. **Estados finales**
+8. **Estados finales**
    - **Dado** un ticket en `Closed` o `Canceled`,
-   - **entonces** no admite más transiciones.
-7. **Historial y marcas de tiempo**
-   - **Dado** cualquier cambio de estado o de asignación,
-   - **entonces** se registra en el historial (quién, cuándo, valor anterior y nuevo) en la misma transacción, y se rellenan `solved_at` al pasar a `Solved` y `closed_at` al pasar a `Closed` o `Canceled`.
-8. **Interfaz**
-   - En el detalle del ticket solo se muestran los botones de las transiciones permitidas para el estado actual y el rol del usuario.
+   - **cuando** alguien pide cualquier transición,
+   - **entonces** el backend responde `422` y el ticket no cambia.
+9. **Historial y marcas de tiempo**
+   - **Dado** un ticket en `In progress`,
+   - **cuando** el operador lo pasa a `Solved`,
+   - **entonces** se registra en el historial quién, cuándo, el valor anterior y el nuevo, en la misma transacción que el cambio, y se rellena `solved_at`. Al pasar a `Closed` o `Canceled` se rellena `closed_at`.
+10. **Interfaz**
+    - **Dado** que abro el detalle de un ticket,
+    - **cuando** se carga,
+    - **entonces** solo veo los botones de las transiciones permitidas para el estado actual y mi rol.
 
-**Notas:**
+**Fuera de alcance:**
+- Salida automática de `Pending user` cuando el usuario comenta, y reapertura de tickets `Solved` (pendientes de requisitos).
+- Notificaciones (email o en la aplicación) al cambiar de estado.
+- SLA y alertas por tiempo en cada estado.
+- Acciones masivas sobre varios tickets.
+
+**Notas (contexto técnico):**
 - Las reglas se implementan en una única máquina de estados en el backend, que usan tanto la lista y el detalle como el Kanban (HU-05).
-- Pendiente de requisitos: salida automática de `Pending user` cuando el usuario comenta, y reapertura de tickets `Solved`.
+- Ver el diagrama de secuencia de la sección 2.1 y el ticket de trabajo REQ-BE-01.
 
 ---
 
@@ -638,18 +686,21 @@ Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester
 #### HU-05 · Kanban de tickets
 
 **Como** operador o supervisor,
-**quiero** ver los tickets en un tablero Kanban con una columna por estado y moverlos arrastrándolos,
+**quiero** ver los tickets en un tablero Kanban con una columna por estado y moverlos arrastrándolos **(asumido: arrastrar y soltar)**,
 **para** tener de un vistazo el estado del trabajo y actualizarlo rápidamente.
 
-**Prioridad:** Must · **Estimación:** 5 SP · **Depende de:** HU-02, HU-04
+**Épica:** E1 · **Prioridad:** Must · **Estimación:** 5 SP · **Depende de:** HU-02, HU-04
 
 **Criterios de aceptación:**
 
 1. **Columnas**
-   - **Dado** que abro el Kanban,
-   - **entonces** veo una columna por estado activo (`Open`, `Assigned`, `In progress`, `Pending user`, `Solved`), cada una con su número de tickets. `Closed` y `Canceled` están ocultas por defecto y se pueden mostrar con un filtro.
-2. **Tarjetas**
-   - Cada tarjeta muestra `REQ-<id>`, título, prioridad (con un color por nivel), assignee y antigüedad. Dentro de cada columna se ordenan por prioridad descendente y, a igualdad, por antigüedad.
+   - **Dado** que soy operador o supervisor,
+   - **cuando** abro el Kanban,
+   - **entonces** veo una columna por estado activo (`Open`, `Assigned`, `In progress`, `Pending user`, `Solved`), cada una con su número de tickets. `Closed` y `Canceled` están ocultas por defecto y se pueden mostrar con un filtro **(asumido)**.
+2. **Tarjetas (asumido: contenido y orden)**
+   - **Dado** una columna con tickets,
+   - **cuando** se muestra,
+   - **entonces** cada tarjeta enseña `REQ-<id>`, título, prioridad (con un color por nivel), assignee y antigüedad, ordenadas por prioridad descendente y, a igualdad, por antigüedad.
 3. **Filtros**
    - **Dado** el Kanban,
    - **cuando** filtro por prioridad, assignee, reporter o texto (o marco "Mis tickets"),
@@ -659,28 +710,40 @@ Estimación en *story points* (escala Fibonacci). Roles: **usuario** (`requester
    - **cuando** lo arrastro a otra columna,
    - **entonces** solo se resaltan como destino las columnas a las que la transición está permitida para mi rol, y al soltarlo el cambio se guarda mediante la API de HU-04.
 5. **Error al mover**
-   - **Dado** que la API rechaza el cambio (p. ej. otro operador lo cambió antes),
+   - **Dado** que muevo una tarjeta,
+   - **cuando** la API rechaza el cambio (p. ej. otro operador lo cambió antes),
    - **entonces** la tarjeta vuelve a su columna original y veo un mensaje explicando el motivo.
-6. **Mover a `Assigned`**
+6. **Mover a `Assigned` (asumido)**
    - **Dado** un ticket en `Open`,
    - **cuando** un operador lo arrastra a `Assigned`, **entonces** se lo asigna a sí mismo;
    - **cuando** lo hace un supervisor, **entonces** se abre un selector para elegir el operador.
 7. **Acceso al detalle**
-   - Al pulsar una tarjeta se abre el detalle del ticket (HU-03).
+   - **Dado** una tarjeta del tablero,
+   - **cuando** la pulso,
+   - **entonces** se abre el detalle del ticket (HU-03).
+8. **Acceso por rol (asumido)**
+   - **Dado** que soy usuario (peticionario),
+   - **cuando** intento abrir el Kanban,
+   - **entonces** se me redirige a la lista de mis tickets.
 
-**Notas:**
-- El usuario (peticionario) no tiene acceso al Kanban en el MVP; consulta sus tickets desde la lista.
+**Fuera de alcance:**
+- Swimlanes (agrupar por assignee o prioridad).
+- Límites WIP por columna.
+- Actualización en tiempo real cuando otra persona mueve una tarjeta (se ve al recargar o tras un error `409`).
+- Configurar columnas o reordenar tarjetas a mano dentro de una columna.
+
+**Notas (contexto técnico):**
 - La actualización es optimista: la tarjeta se mueve al instante y se revierte si la API devuelve error.
+- El frontend no replica las reglas del flujo: pregunta a la API qué transiciones hay disponibles.
+- Ticket de trabajo relacionado: REQ-FE-01.
 
 ---
 
 ## 6. Tickets de Trabajo
 
-Tickets derivados de las historias de la sección 5: uno de **base de datos** (HU-01), uno de **backend** (HU-04) y uno de **frontend** (HU-05). Todos comparten esta *Definition of Done*:
+Tickets derivados de las historias de la sección 5: uno de **base de datos** (HU-01), uno de **backend** (HU-04) y uno de **frontend** (HU-05).
 
-- Código revisado en una pull request contra la rama de la entrega, con Biome y el chequeo de tipos (`tsc --noEmit`) en verde.
-- Tests nuevos en verde y ningún test existente roto.
-- Documentación actualizada en la misma PR (readme, OpenAPI, TSDoc o ADR, según aplique).
+Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de ese tipo. Las plantillas (feature, migración de base de datos, bug, refactor, documentación y spike) están en la sección "Definition of Done por tipo de trabajo" del [`AGENTS.md`](AGENTS.md), de modo que los agentes de IA las aplican también. Cada ticket añade solo sus comprobaciones específicas.
 
 ---
 
@@ -722,6 +785,15 @@ Tickets derivados de las historias de la sección 5: uno de **base de datos** (H
 - Tabla de casos de la prioridad (1×1 → 1, 1×5 → 1, 2×3 → 2, 3×5 → 3, 4×5 → 4, 5×5 → 5).
 - Un test por cada restricción `CHECK`, `UNIQUE` y FK anterior.
 - Migrar, hacer rollback y volver a migrar sin errores.
+
+**Definition of Done:** tipo *migración de base de datos*, más:
+- `migration:run`, `migration:rollback --batch=0` y de nuevo `migration:run` pasan en una base vacía.
+- La sección 3 del readme sigue coincidiendo con el esquema real.
+
+**Fuera de alcance:**
+- Endpoints de la API y pantallas: solo esquema, modelos y seeders.
+- Datos de producción y migración de datos desde JSM.
+- Índices de búsqueda de texto completo (se valorarán con HU-02 si la búsqueda simple no basta).
 
 **Notas técnicas:**
 
@@ -782,6 +854,16 @@ Tickets derivados de las historias de la sección 5: uno de **base de datos** (H
 - **Unitarios (Japa):** la tabla completa de la máquina de estados, generada a partir de todas las combinaciones de estado × destino × rol, y comprobando que solo pasan las permitidas.
 - **Funcionales (Japa + PostgreSQL de test):** flujo completo `open → assigned → in_progress → pending_user → in_progress → solved → closed`, más un caso por cada código de error (`401`, `403`, `404`, `409`, `422`).
 
+**Definition of Done:** tipo *feature*, más:
+- La especificación OpenAPI (`/docs`) muestra ambos endpoints con todos sus códigos de respuesta.
+- TSDoc en los métodos públicos de `ticket_workflow`.
+
+**Fuera de alcance:**
+- Endpoints de creación, lista y detalle de tickets (HU-01, HU-02 y HU-03).
+- Comentarios y la salida automática de `Pending user` al comentar.
+- Notificaciones de cambio de estado.
+- Cualquier cambio en el frontend.
+
 **Notas técnicas:**
 
 - Los controllers no contienen reglas de negocio: validan, autorizan y delegan en `ticket_workflow`.
@@ -829,6 +911,15 @@ Tickets derivados de las historias de la sección 5: uno de **base de datos** (H
 
 - **Componentes (Vitest + Testing Library + MSW para simular la API):** renderizado de columnas y contadores; filtros que actualizan la URL y la consulta; reversión de la tarjeta y aviso cuando la API devuelve `422`; el `AssigneePicker` aparece solo para el supervisor.
 - **E2E (Playwright):** un operador arrastra un ticket de `Open` a `Assigned` y luego a `In progress`, y el cambio persiste tras recargar.
+
+**Definition of Done:** tipo *feature*, más:
+- Probado manualmente con los tres roles de los seeders.
+- Navegable solo con teclado.
+
+**Fuera de alcance:**
+- Cambios en la API: el ticket consume REQ-BE-01 y el endpoint de lista tal como están.
+- Swimlanes, límites WIP y actualización en tiempo real (ver HU-05).
+- Diseño visual definitivo: basta con una interfaz limpia y coherente.
 
 **Notas técnicas:**
 

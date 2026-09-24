@@ -1,4 +1,4 @@
-an# AGENTS.md
+# AGENTS.md
 
 Contexto para asistentes de código (Claude Code, Copilot, Cursor, etc.) que trabajen en este repositorio. `CLAUDE.md` es un enlace simbólico a este archivo: edita siempre `AGENTS.md`.
 
@@ -147,6 +147,77 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 - **Ramas:** cada entrega tiene su rama obligatoria (ver "Entregas"). No renombres ni borres esas ramas.
 - **Commits:** mensajes cortos en español, en imperativo (p. ej. "Añadir modelo de datos de tickets").
 - No subas configuración local del IDE (`.idea/` está en `.gitignore`) ni secretos.
+
+## Planificación y flujo de trabajo
+
+Estas reglas siguen las recomendaciones del módulo 4 del máster. El backlog, las épicas y el plan por entregas están en la sección 5 del `readme.md`.
+
+### Historias listas para trabajar con IA
+
+Una historia solo entra en desarrollo si:
+
+- Pasa **INVEST**. Si falla dos o más criterios, vuelve a refinamiento.
+- Tiene los criterios de aceptación en **Dado / cuando / entonces**.
+- **El camino feliz lo escribe una persona; la IA solo propone los casos límite** que falten. Todo criterio que la IA añada sin evidencia en el PRD o los requisitos se marca **(asumido)** hasta que el autor lo confirme.
+- Tiene una sección **"Fuera de alcance"** (non-goals). No implementes nada que no esté en los criterios, aunque parezca útil: abre otra historia o ticket.
+- Lleva el **contexto técnico al final**, después de los criterios.
+
+Cuando generes historias o tickets, no les des a todas la misma forma: indica su **complejidad o riesgo** (baja, media o alta) y por qué.
+
+### Estimación
+
+- *Story points* en Fibonacci (1, 2, 3, 5, 8, 13) para historias y tickets; tallas de camiseta (S, M, L, XL) para épicas y roadmap. **Nunca horas ni decimales.**
+- La estimación de la IA es una opinión más, nunca la decisión final.
+- Se compromete con un **colchón del 30 %**. No asumas multiplicadores de velocidad por usar IA.
+
+### De historia a código (entregas 2 y 3)
+
+1. Una historia → un **change de OpenSpec**, como primera tarea técnica al empezar la historia. La historia define el *qué*; el change, el *cómo*. El agente trabaja sobre el change, no sobre la historia directamente.
+2. Una historia o ticket → una rama → una pull request pequeña que enlaza la historia y aplica la DoD de su tipo.
+3. Cada PR lleva una etiqueta de **origen**: `human`, `human+copilot`, `agent` o `agent+human-review`. Sirve para medir la calidad según el origen, no para inflar la velocidad.
+4. Toda PR la revisa al menos una persona antes de integrarla, aunque la haya revisado un agente.
+
+### Definition of Done por tipo de trabajo
+
+**Feature**
+- [ ] Cubre todos los criterios de aceptación, y ninguno de los marcados "Fuera de alcance".
+- [ ] Al menos un test por criterio de aceptación (unitario, funcional o de componente, según la capa).
+- [ ] Validación de entradas con VineJS en el backend.
+- [ ] OpenAPI generada y actualizada (`adonis-autoswagger`) si cambia la API.
+- [ ] TSDoc en los métodos públicos nuevos de servicios y controllers.
+- [ ] Biome y `tsc --noEmit` en verde; ningún test existente roto.
+- [ ] Documentación afectada actualizada en la misma PR (readme, ADR si hay decisión nueva).
+- [ ] Change de OpenSpec archivado tras el merge (si aplica).
+- [ ] PR que enlaza la historia, con etiqueta de origen y revisada por una persona.
+
+**Migración de base de datos**
+- [ ] Migración reversible: `up` y `down` probados sobre una base vacía.
+- [ ] Restricciones (NOT NULL, CHECK, UNIQUE, FK) en la base de datos, no solo en la aplicación.
+- [ ] Índices para los campos por los que se filtra u ordena.
+- [ ] Modelos Lucid y seeders actualizados.
+- [ ] Tests de las restricciones.
+- [ ] Sección 3 del readme (modelo de datos) actualizada.
+
+**Bug**
+- [ ] Test que reproduce el bug, en un commit **anterior** al arreglo.
+- [ ] Arreglo mínimo y enfocado, sin refactors no relacionados.
+- [ ] El test ahora pasa.
+- [ ] Análisis breve de causa (5 porqués) en la PR: por qué se introdujo y si CI podría haberlo detectado.
+
+**Refactor**
+- [ ] La cobertura de tests del módulo no baja.
+- [ ] El comportamiento observable no cambia (mismos contratos y endpoints).
+- [ ] La PR explica la motivación y no mezcla cambios de funcionalidad.
+
+**Documentación**
+- [ ] Revisada por una persona, no solo generada por IA.
+- [ ] Los fragmentos de código son ejecutables.
+- [ ] Sin enlaces internos rotos; diagramas en Mermaid.
+
+**Spike / investigación**
+- [ ] Hallazgos, alternativas y recomendación documentados.
+- [ ] ADR si de él sale una decisión.
+- [ ] Siguiente paso decidido: continuar, pivotar o descartar.
 
 ## Documentación
 
