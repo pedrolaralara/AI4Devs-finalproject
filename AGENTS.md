@@ -41,6 +41,24 @@ No es un clon genérico de JSM: no hay tipos de issue, formularios ni workflows 
 
 En código se usa `requester` en lugar de `user` para no confundir el rol con la entidad `User`, que representa a cualquier persona con cuenta (sea cual sea su rol). En el ticket, el `reporter` es el usuario que lo abrió y el `assignee` el agente asignado.
 
+## Estado actual
+
+| Entrega | Estado |
+|---------|--------|
+| 1 · Documentación técnica | ✅ **Entregada el 24/09/2026** (PR desde `feature/entrega-1-PLL` y formulario enviado). |
+| 2 · Código funcional | ⏳ **Siguiente, sin empezar.** Vence el 22/10/2026. |
+| 3 · Entrega final | Pendiente. Vence el 12/11/2026. |
+
+**No generes scaffolding ni código de aplicación** hasta que el autor arranque la entrega 2 y lo pida. Al arrancarla:
+
+1. Crear la rama `feature/entrega-2-PLL` y no volver a hacer commits en `feature/entrega-1-PLL`, porque su PR ya está entregada.
+2. Actualizar esta sección y la de "Entrega 2 en detalle".
+3. Instalar Context7 MCP (ver "Documentación").
+4. Cerrar los puntos abiertos del PRD que afectan a HU-04: salida de *Pending user*, reapertura, visibilidad por rol y edición de campos.
+5. Recomendado: mover la copia local de trabajo fuera de iCloud Drive antes de instalar dependencias (ver "Notas del entorno").
+
+Objetivo de la entrega 2 (sección 5 del `readme.md`): *un usuario abre un ticket y un operador lo lleva hasta resuelto, de principio a fin*, con HU-00, HU-01, HU-03 y HU-04.
+
 ## Entregas
 
 | # | Contenido | Rama | Fecha |
@@ -66,9 +84,9 @@ El proyecto final es uno de los cuatro criterios para obtener el certificado. Se
 - La entrega final debe tener entre 3 y 5 funcionalidades completas, tests (unitarios, integración y al menos un E2E del flujo principal) y evidencia de despliegue (URL pública, capturas o vídeo).
 - No hace falta aplicar todo lo visto en el máster: se prioriza que el producto funcione y que se vea cómo se usó la IA.
 
-### Entrega 1 en detalle (fase actual)
+### Entrega 1 en detalle (entregada)
 
-**Es 100 % documentación: todavía no hay código.** No generes scaffolding ni código de aplicación salvo que se pida explícitamente.
+Fue 100 % documentación, sin código.
 
 Qué hay que tener en `readme.md` en la rama `feature/entrega-1-PLL`:
 
@@ -148,6 +166,19 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 - **Ramas:** cada entrega tiene su rama obligatoria (ver "Entregas"). No renombres ni borres esas ramas.
 - **Commits:** mensajes cortos en español, en imperativo (p. ej. "Añadir modelo de datos de tickets").
 - No subas configuración local del IDE (`.idea/` está en `.gitignore`) ni secretos.
+
+## Cómo trabaja el autor
+
+Preferencias del autor (Pedro Lara Lara, iniciales **PLL**) para trabajar con asistentes de IA en este proyecto:
+
+- **Comunicación en español**, clara y directa.
+- **Paso a paso.** Se avanza por bloques (una sección, un documento, una historia). Al terminar cada bloque, resume qué has hecho y propón el siguiente paso; no encadenes varios bloques sin confirmación.
+- **Propón antes de hacer cambios grandes.** Si hay varias opciones con consecuencias (arquitectura, alcance, estructura), preséntalas con una recomendación y espera la decisión.
+- **Supuestos siempre explícitos.** Todo lo que decidas sin que venga de los requisitos se lista al final de tu respuesta para que el autor lo valide, y en la documentación se marca **(asumido)**.
+- **Git solo cuando se pide.** No hagas commit ni push por iniciativa propia: espera a que el autor lo pida ("haz commit", "commit y push"). Los commits siguen las convenciones de arriba.
+- **Respeta los cambios del autor.** Si un archivo ha cambiado por su lado, parte de ese estado y no lo reviertas. Si algo parece un error (p. ej. una errata), señálalo y pregunta antes de corregirlo.
+- **Revisión contra el temario del máster.** Al cerrar una entrega o una fase, el autor suele pedir que se revise el trabajo contra los módulos del máster (p. ej. el 4 de planificación y el 5 de documentación). Las lecciones están en la plataforma de LIDR, que requiere sesión: el login lo hace el autor y el agente solo lee el contenido.
+- **Registro de IA al día.** Los prompts y decisiones significativas se registran en `prompts.md`, incluidos los errores de la IA que se detecten y los ajustes humanos.
 
 ## Planificación y flujo de trabajo
 
