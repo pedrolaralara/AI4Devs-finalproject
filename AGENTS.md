@@ -4,6 +4,8 @@ Contexto para asistentes de código (Claude Code, Copilot, Cursor, etc.) que tra
 
 ## Qué es este proyecto
 
+**Nombre del producto: Requesto.**
+
 Proyecto final del máster **AI4Devs 2026/06 Rookies** (LIDR). Consiste en desarrollar un producto de software de inicio a fin, integrando IA en **todas las fases**: idea y documentación, código, testing y despliegue. Debe ser un proyecto real y funcional que aplique lo aprendido en el máster. El dominio es libre; en este caso, un módulo inspirado en el trabajo real del alumno. Dedicación estimada: unas 30 horas en total.
 
 ### Necesidad (driver)
@@ -127,7 +129,16 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 
 - **Despliegue:** on-premise. Evita dependencias de servicios cloud gestionados que no se puedan autoalojar.
 
-> Pendiente: cómo se integran front y back (SPA separada con API REST o AdonisJS + Inertia), ORM, autenticación, proveedor/modelo del agente de IA (debe ser compatible con el despliegue on-premise), tests e infraestructura.
+- **Integración front-back:** el frontend es una **SPA** (React + Vite) independiente que consume una **API REST** expuesta por AdonisJS. No se usa Inertia.
+
+- **Backend:** AdonisJS 6 con Lucid (ORM), VineJS (validación), `@adonisjs/auth` con guard de sesión (cookie `HttpOnly`) y `@adonisjs/bouncer` (autorización por rol). Capas: controllers finos → `app/services/` (dominio: máquina de estados, prioridad, historial) → modelos. Las reglas de flujo y permisos viven solo en los servicios y las políticas, nunca en el frontend.
+- **Frontend:** React Router, TanStack Query y dnd-kit (Kanban). Estructura por funcionalidad en `src/features/`.
+- **Agente de IA:** módulo `app/agent/` del backend. Usa *tool calling* con herramientas **de solo lectura** que reutilizan los servicios de dominio y respetan los permisos del usuario. Nunca genera SQL libre. El proveedor del LLM es configurable por variables de entorno.
+- **Tests:** Japa (unitarios y funcionales de la API), Vitest + Testing Library (componentes), Playwright (E2E).
+- **Infraestructura:** Docker Compose con tres servicios (`web` con Nginx, `api`, `db` con PostgreSQL). CI con GitHub Actions.
+- **Estructura:** monorepo con npm workspaces: `apps/api`, `apps/web`, `e2e/`, `docker/`. La estructura completa está en la sección 2.3 del `readme.md`.
+
+> Pendiente: proveedor y modelo concretos del LLM (API externa o modelo local, por la restricción on-premise).
 
 ## Convenciones
 
