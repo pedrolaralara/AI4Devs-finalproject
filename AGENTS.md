@@ -129,6 +129,7 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 | `readme.md` | Documentación entregable del proyecto (plantilla oficial del máster): ficha, producto, arquitectura, modelo de datos, API, historias de usuario, tickets y PRs. |
 | `prompts.md` | Registro de los prompts principales usados con asistentes de IA, organizados por las mismas secciones que `readme.md` (máximo 3 por sección). |
 | `PRD/PRD.md` | Documento de requisitos de producto (fuente de verdad). Los puntos pendientes se concretarán en documentos de requisitos que lo detallan. |
+| `ARQUITECTURA.md` | **Fuente de verdad de la arquitectura**: C4, componentes, flujos, datos, API, despliegue, conceptos transversales y riesgos. |
 | `docs/adr/` | Architecture Decision Records (formato MADR). Índice en `docs/adr/README.md`. |
 | `AGENTS.md` | Este archivo. Contexto para agentes. |
 | `CLAUDE.md` | Enlace simbólico a `AGENTS.md`. |
@@ -257,6 +258,7 @@ La documentación es *docs-as-code*: vive en el repo, se revisa en la PR y se ac
 
 - **Misma PR:** el cambio que modifica comportamiento actualiza también la documentación afectada (`readme.md`, ADRs, OpenAPI, TSDoc). Una PR que deja la documentación desactualizada no está terminada.
 - **ADRs:** cada decisión técnica que alguien nuevo se preguntaría "¿por qué lo hicieron así?" tiene su ADR en `docs/adr/`, en formato MADR (Estado, Contexto y problema, Opciones consideradas, Decisión, Consecuencias), con nombre `YYYYMMDD-slug.md`. Añádelo al índice de `docs/adr/README.md`. Una decisión sustituida se marca como *Sustituido por*; no se borra.
+- **Arquitectura y `readme.md`:** la sección 2 del `readme.md` es el entregable oficial del máster y se mantiene completa; **no la resumas ni la sustituyas por un enlace**. Eso duplica contenido con `ARQUITECTURA.md` (en un proyecto normal no existiría esta duplicidad). Por eso, **cada cambio de arquitectura se aplica en los dos documentos en la misma PR**, y antes de cerrar una PR o una entrega se revisa que no haya diferencias entre ellos (stack, componentes, estructura de ficheros, diagramas, despliegue, seguridad y tests). Si las hay, manda `ARQUITECTURA.md` y se corrige el `readme.md`. Lo mismo aplica a la sección 3 (modelo de datos) y la 4 (API), que viven en el `readme.md` y se resumen en `ARQUITECTURA.md`.
 - **Diagramas:** en Mermaid, embebidos en Markdown. Nada de imágenes de diagramas que no se puedan editar como texto.
 - **API:** la especificación OpenAPI se genera desde el código con `adonis-autoswagger` y se visualiza con Scalar en `/docs`. Documenta cada acción de controller con sus comentarios (`@summary`, `@description`, `@requestBody`, `@responseBody` incluidos los errores `403`/`422`). No escribas YAML de OpenAPI a mano.
 - **Código:** TSDoc en los métodos públicos de `app/services/` y `app/controllers/`. Describe el significado, los errores (`@throws`) y ejemplos si el uso no es obvio. **No repitas los tipos** en `@param` ni `@returns`: ya los da TypeScript.
