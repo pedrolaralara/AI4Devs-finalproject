@@ -1,63 +1,94 @@
-# IA4Dev — Proyecto
+# Requesto — PRD
 
-> Documento de requisitos de producto, a partir de las notas manuscritas del autor y sus aclaraciones posteriores. Los puntos marcados como **Pendiente** se concretarán en los requisitos que detallan este PRD.
+> Documento de requisitos de producto. Nació de las notas manuscritas del autor y se ha actualizado con las decisiones tomadas al documentar la entrega 1 (`readme.md`, secciones 1, 3, 4 y 5).
+>
+> **Versión:** 1.1 · **Fecha:** 24/09/2026 · **Estado:** base para la entrega 2.
+>
+> Los puntos marcados **(asumido)** no vienen de los requisitos del autor, sino de supuestos tomados al redactar las historias: deben confirmarse. Los puntos marcados **Pendiente** se concretarán en los requisitos que detallan este PRD.
 
-## Driver
+## 1. Problema (driver)
 
-Mi sistema de ticketing está en JSM Datacenter. Como se ha anunciado el EOL y no quiero ir al Cloud, necesito una alternativa.
+Mi sistema de ticketing está en JSM Data Center. Como Atlassian ha anunciado su fin de vida (EOL) y no quiero ir al Cloud, necesito una alternativa.
 
-**Implicación:** la aplicación debe poder desplegarse on-premise (en infraestructura propia), sin depender de un SaaS.
+**Implicación:** la aplicación debe poder desplegarse **on-premise** (en infraestructura propia), sin depender de un SaaS para funcionar.
 
-## Objetivo
+## 2. Objetivo y valor
 
-Tener una app web para la gestión de mis tickets.
+Tener una app web, **Requesto**, para la gestión de mis tickets. No es un clon genérico de JSM: gestiona **un solo tipo de ticket (Request)**, con un formulario fijo y un flujo fijo.
 
-## Arquitectura
+| Valor | Descripción |
+|-------|-------------|
+| Continuidad | El servicio de tickets sigue funcionando tras el EOL de JSM Data Center. |
+| Control de los datos | Todo se queda en la infraestructura de la empresa. |
+| Simplicidad | Sin tipos de issue, formularios ni workflows configurables que nadie usa. |
+| Explotación con IA | Un agente de IA responde preguntas sobre los tickets en lenguaje natural. |
 
-- **Front:** React
-- **Back:** AdonisJS
-- **DB:** PostgreSQL
+### Métricas de éxito (asumido)
 
-## Alcance
+- El flujo completo de un Request (abrir → asignar → resolver → cerrar) se puede hacer en Requesto sin recurrir a JSM.
+- Cada cambio de estado o de asignación queda trazado en el historial (quién, cuándo, antes y después).
+- Un operador ve de un vistazo su trabajo pendiente, en lista o en Kanban, ordenado por prioridad.
 
-- CRUD de tickets
-- Kanban de tickets
-- Ver lista de tickets
-- Ver detalle de un ticket
-- Filtrar tickets
-  - Listado
-  - Kanban
-- Explotación de información:
-  - Mediante un agente de IA
-  - Dashboard. **Pendiente:** aún no está claro si habrá dashboards propios o si también se generarán mediante el agente de IA.
+## 3. Usuarios y roles
 
-## Tipo de ticket
+| Rol | Identificador en código | Necesidad |
+|-----|-------------------------|-----------|
+| **Usuario** (peticionario) | `requester` | Abrir peticiones, seguir su estado y cerrarlas cuando están resueltas. |
+| **Operador** | `agent` | Ver su trabajo pendiente, asignarse peticiones y llevarlas hasta su resolución. |
+| **Supervisor** | `supervisor` | Repartir el trabajo entre operadores y tener visibilidad sobre los tickets. |
 
-- Request
+## 4. Alcance del MVP
 
-## Campos del ticket
+Organizado en dos épicas. El detalle de cada historia está en la sección 5 del `readme.md`.
+
+| Id | Funcionalidad | Épica | Prioridad |
+|----|---------------|-------|-----------|
+| HU-00 | Autenticación y roles (base técnica) | E1 · Ciclo de vida del ticket | Must |
+| HU-01 | Crear un ticket | E1 | Must |
+| HU-02 | Lista de tickets con filtros | E1 | Must |
+| HU-03 | Detalle del ticket con comentarios e historial | E1 | Must |
+| HU-04 | Gestionar el flujo de un ticket (asignación y cambios de estado) | E1 | Must |
+| HU-05 | Kanban de tickets, con filtros y arrastrar y soltar **(asumido: arrastrar y soltar)** | E1 | Must |
+| HU-06 | Explotación de la información mediante un **agente de IA** | E2 · Explotación de la información | Should |
+| HU-07 | Dashboard de tickets. **Pendiente:** si será un dashboard propio o lo generará también el agente de IA | E2 | Should |
+
+**Filtros** (lista y Kanban): estado, prioridad, assignee, reporter, texto libre, "mis tickets" y "sin asignar".
+
+### Fuera de alcance del MVP
+
+- Tipos de ticket, formularios o workflows configurables.
+- Adjuntos en los tickets.
+- Notificaciones (email o en la aplicación).
+- SLA, alertas por tiempo y escalados.
+- Acciones masivas sobre varios tickets.
+- Actualización en tiempo real entre usuarios.
+- Migración de los datos existentes en JSM.
+- Borrado de tickets: un ticket que no procede se **cancela** **(asumido)**.
+
+## 5. El ticket de tipo Request
 
 | Campo | Valor / tipo |
 |-------|--------------|
-| Id | Identificador del ticket |
-| Tipo | Request (fijo) |
-| Título | Texto |
-| Descripción | Texto largo |
-| Reporter | Usuario que abre el ticket. Automático |
-| Assignee | Operador asignado. Vacío hasta que se asigna |
-| Estado | Ver "Flujo de estados" |
-| Fecha creación | Automático |
-| Urgencia | 1-5 |
-| Impacto | 1-5 |
-| Prioridad | Automático, calculada a partir de Urgencia × Impacto y reescalada a 1-5 |
-| Historial | Automático |
-| Comentarios | Lista de comentarios, cada uno con su fecha |
+| Id | Identificador numérico automático. Se muestra como `REQ-<id>`. |
+| Tipo | `Request` (fijo). |
+| Título | Texto, obligatorio, máximo 200 caracteres **(asumido: límite)**. |
+| Descripción | Texto largo, obligatorio. |
+| Reporter | Usuario que abre el ticket. Automático. |
+| Assignee | Operador asignado. Vacío hasta que se asigna; obligatorio a partir de `Assigned`. |
+| Estado | Ver "Flujo de estados". Al crearse: `Open`. |
+| Urgencia | 1-5. |
+| Impacto | 1-5. |
+| Prioridad | Automática, 1-5. No se introduce a mano. |
+| Fecha de creación | Automática. |
+| Fecha de resolución / cierre | Automáticas, al pasar a `Solved` y a `Closed` o `Canceled`. |
+| Historial | Automático: registro de cada creación, cambio de estado, asignación y cambio de campos. |
+| Comentarios | Lista de comentarios, cada uno con su autor y fecha. |
 
 ### Cálculo de la prioridad
 
-Urgencia × Impacto da un valor entre 1 y 25, que se reescala a 1-5.
+Urgencia × Impacto da un valor entre 1 y 25, que se reescala a 1-5:
 
-**Propuesta** (pendiente de confirmar): `prioridad = ceil(urgencia × impacto / 5)`
+`prioridad = ceil(urgencia × impacto / 5)`
 
 | Urgencia × Impacto | Prioridad |
 |--------------------|-----------|
@@ -67,20 +98,13 @@ Urgencia × Impacto da un valor entre 1 y 25, que se reescala a 1-5.
 | 16-20 | 4 |
 | 21-25 | 5 |
 
-## Flujo de estados
-
-Flujo principal:
-
-```
-Open → Assigned → In progress → Solved → Closed
-```
-
-Estados alternativos: **Pending user** y **Canceled**.
+## 6. Flujo de estados
 
 ```mermaid
 stateDiagram-v2
     [*] --> Open
     Open --> Assigned
+    Assigned --> Assigned: reasignar
     Assigned --> InProgress
     InProgress --> PendingUser
     PendingUser --> InProgress
@@ -94,21 +118,63 @@ stateDiagram-v2
     Canceled --> [*]
 ```
 
-**Pendiente de confirmar:**
-- Cómo se sale de *Pending user*: ¿lo vuelve a poner el operador en *In progress*, o pasa automáticamente cuando el usuario responde?
-- Desde qué estados se puede cancelar (el diagrama asume que desde cualquier estado no final).
-- Si un ticket en *Solved* se puede reabrir (volver a *In progress*) cuando el usuario no está conforme.
+Flujo principal: `Open → Assigned → In progress → Solved → Closed`. Estados alternativos: `Pending user` (el operador espera información del usuario) y `Canceled`. `Closed` y `Canceled` son finales: no admiten más transiciones.
 
-## Roles y permisos
+| Desde | Hacia | Quién puede |
+|-------|-------|-------------|
+| `Open` | `Assigned` | Operador (a sí mismo); supervisor (a cualquier operador activo) |
+| `Assigned` | `Assigned` (reasignar) **(asumido)** | Supervisor |
+| `Assigned` | `In progress` | Operador asignado; supervisor |
+| `In progress` | `Pending user` | Operador asignado; supervisor |
+| `Pending user` | `In progress` | Operador asignado; supervisor |
+| `In progress` | `Solved` | Operador asignado; supervisor |
+| `Solved` | `Closed` | Usuario (reporter del ticket) |
+| `Open`, `Assigned`, `In progress`, `Pending user` **(asumido: estados de origen)** | `Canceled` | Usuario (reporter); operador asignado; supervisor |
 
-| Rol | Puede |
-|-----|-------|
-| Usuario (peticionario) | Abrir, cancelar y cerrar tickets. |
-| Operador | Asignarse un ticket; pasarlo a *In progress*, *Pending user*, *Canceled* y *Solved*. |
-| Supervisor | Todo lo que puede el operador y, además, asignar un ticket a un operador. |
+## 7. Roles y permisos
 
-**Pendiente de confirmar:**
-- Si el usuario ve solo sus propios tickets o todos.
-- Quién puede editar los campos del ticket (título, descripción, urgencia, impacto) y en qué estados.
-- Si los tickets se pueden borrar (el "CRUD" incluye borrado) o solo cancelar.
+| Acción | Usuario | Operador | Supervisor |
+|--------|:-------:|:--------:|:----------:|
+| Abrir un ticket | ✅ | ❌ **(asumido)** | ❌ **(asumido)** |
+| Comentar en un ticket **(asumido)** | ✅ | ✅ | ✅ |
+| Asignarse un ticket | | ✅ | ✅ |
+| Asignar un ticket a otro operador | | | ✅ |
+| Pasar a *In progress*, *Pending user* o *Solved* | | ✅ | ✅ |
+| Cancelar un ticket | ✅ (los suyos) | ✅ | ✅ |
+| Cerrar un ticket resuelto | ✅ (los suyos) | | |
+| Usar el Kanban **(asumido)** | ❌ (usa la lista) | ✅ | ✅ |
+| Consultar al agente de IA | | ✅ | ✅ |
 
+## 8. Requisitos no funcionales
+
+- **Despliegue on-premise**, sin servicios cloud gestionados que no se puedan autoalojar.
+- **Seguridad:** autenticación con sesión; las reglas de flujo y permisos se validan siempre en el servidor, no solo en la interfaz.
+- **Trazabilidad:** historial inmutable de todos los cambios del ticket.
+- **Consistencia:** si dos personas cambian el mismo ticket a la vez, solo se aplica un cambio y la otra persona recibe un aviso para recargar.
+- **Agente de IA acotado:** solo puede leer datos, respeta los permisos de quien pregunta y su proveedor LLM es configurable, para poder usar un modelo local si los datos no deben salir de la infraestructura.
+- **Accesibilidad:** el Kanban se puede usar solo con teclado.
+
+## 9. Arquitectura
+
+- **Front:** React (SPA con Vite)
+- **Back:** AdonisJS 7 (API REST)
+- **DB:** PostgreSQL
+
+El detalle está en la sección 2 del `readme.md` y las decisiones justificadas en [`docs/adr/`](../docs/adr/README.md).
+
+## 10. Plan por entregas
+
+| Entrega | Objetivo | Historias |
+|---------|----------|-----------|
+| 2 · 22/10/2026 | Un usuario abre un ticket y un operador lo lleva hasta resuelto, de principio a fin. | HU-00, HU-01, HU-03, HU-04 |
+| 3 · 12/11/2026 | El MVP completo, probado y desplegado on-premise. | HU-02, HU-05; HU-06 y HU-07 si hay capacidad |
+
+## 11. Puntos pendientes
+
+- **Pending user:** ¿lo vuelve a poner el operador en *In progress*, o pasa automáticamente cuando el usuario comenta?
+- **Reapertura:** ¿un ticket en *Solved* se puede reabrir si el usuario no está conforme?
+- **Visibilidad:** ¿el usuario ve solo sus tickets o todos?
+- **Edición:** ¿quién puede editar los campos del ticket (título, descripción, urgencia, impacto) y en qué estados?
+- **Dashboard:** ¿dashboard propio o generado por el agente de IA?
+- **Agente de IA:** ¿qué proveedor y modelo (API externa o modelo local)?
+- Confirmar los supuestos marcados **(asumido)** en este documento.
