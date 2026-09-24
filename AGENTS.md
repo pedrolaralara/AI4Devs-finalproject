@@ -1,4 +1,4 @@
-# AGENTS.md
+an# AGENTS.md
 
 Contexto para asistentes de código (Claude Code, Copilot, Cursor, etc.) que trabajen en este repositorio. `CLAUDE.md` es un enlace simbólico a este archivo: edita siempre `AGENTS.md`.
 
@@ -111,6 +111,7 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 | `readme.md` | Documentación entregable del proyecto (plantilla oficial del máster): ficha, producto, arquitectura, modelo de datos, API, historias de usuario, tickets y PRs. |
 | `prompts.md` | Registro de los prompts principales usados con asistentes de IA, organizados por las mismas secciones que `readme.md` (máximo 3 por sección). |
 | `PRD/PRD.md` | Documento de requisitos de producto (fuente de verdad). Los puntos pendientes se concretarán en documentos de requisitos que lo detallan. |
+| `docs/adr/` | Architecture Decision Records (formato MADR). Índice en `docs/adr/README.md`. |
 | `AGENTS.md` | Este archivo. Contexto para agentes. |
 | `CLAUDE.md` | Enlace simbólico a `AGENTS.md`. |
 
@@ -118,20 +119,20 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 
 | Capa | Tecnología |
 |------|------------|
-| Frontend | React |
-| Backend | AdonisJS |
+| Frontend | React 19 |
+| Backend | AdonisJS 7 |
 | Bundler | Vite |
 | Linter / formatter | Biome |
 | Base de datos | PostgreSQL |
 
-- **Lenguaje:** TypeScript en front y back (AdonisJS v6 es TypeScript nativo).
+- **Lenguaje:** TypeScript en front y back (AdonisJS 7 es TypeScript nativo).
 - **Linter y formatter:** Biome es la única herramienta de lint y formato. No añadas ESLint ni Prettier, aunque las plantillas de AdonisJS o React los incluyan por defecto.
 
 - **Despliegue:** on-premise. Evita dependencias de servicios cloud gestionados que no se puedan autoalojar.
 
 - **Integración front-back:** el frontend es una **SPA** (React + Vite) independiente que consume una **API REST** expuesta por AdonisJS. No se usa Inertia.
 
-- **Backend:** AdonisJS 6 con Lucid (ORM), VineJS (validación), `@adonisjs/auth` con guard de sesión (cookie `HttpOnly`) y `@adonisjs/bouncer` (autorización por rol). Capas: controllers finos → `app/services/` (dominio: máquina de estados, prioridad, historial) → modelos. Las reglas de flujo y permisos viven solo en los servicios y las políticas, nunca en el frontend.
+- **Backend:** AdonisJS 7 con Lucid (ORM), VineJS (validación), `@adonisjs/auth` con guard de sesión (cookie `HttpOnly`) y `@adonisjs/bouncer` (autorización por rol). Capas: controllers finos → `app/services/` (dominio: máquina de estados, prioridad, historial) → modelos. Las reglas de flujo y permisos viven solo en los servicios y las políticas, nunca en el frontend.
 - **Frontend:** React Router, TanStack Query y dnd-kit (Kanban). Estructura por funcionalidad en `src/features/`.
 - **Agente de IA:** módulo `app/agent/` del backend. Usa *tool calling* con herramientas **de solo lectura** que reutilizan los servicios de dominio y respetan los permisos del usuario. Nunca genera SQL libre. El proveedor del LLM es configurable por variables de entorno.
 - **Tests:** Japa (unitarios y funcionales de la API), Vitest + Testing Library (componentes), Playwright (E2E).
@@ -145,9 +146,30 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 - **Idioma:** la documentación, los commits y la comunicación van en español. El código (identificadores, nombres de ficheros) va en inglés.
 - **Ramas:** cada entrega tiene su rama obligatoria (ver "Entregas"). No renombres ni borres esas ramas.
 - **Commits:** mensajes cortos en español, en imperativo (p. ej. "Añadir modelo de datos de tickets").
-- **Documentación:** al tomar una decisión relevante (arquitectura, modelo de datos, API, etc.), actualiza la sección correspondiente de `readme.md`. Si surge de un prompt significativo, regístralo en `prompts.md`.
 - No subas configuración local del IDE (`.idea/` está en `.gitignore`) ni secretos.
+
+## Documentación
+
+La documentación es *docs-as-code*: vive en el repo, se revisa en la PR y se actualiza junto con el código. Estas reglas siguen las recomendaciones del módulo 5 del máster.
+
+- **Misma PR:** el cambio que modifica comportamiento actualiza también la documentación afectada (`readme.md`, ADRs, OpenAPI, TSDoc). Una PR que deja la documentación desactualizada no está terminada.
+- **ADRs:** cada decisión técnica que alguien nuevo se preguntaría "¿por qué lo hicieron así?" tiene su ADR en `docs/adr/`, en formato MADR (Estado, Contexto y problema, Opciones consideradas, Decisión, Consecuencias), con nombre `YYYYMMDD-slug.md`. Añádelo al índice de `docs/adr/README.md`. Una decisión sustituida se marca como *Sustituido por*; no se borra.
+- **Diagramas:** en Mermaid, embebidos en Markdown. Nada de imágenes de diagramas que no se puedan editar como texto.
+- **API:** la especificación OpenAPI se genera desde el código con `adonis-autoswagger` y se visualiza con Scalar en `/docs`. Documenta cada acción de controller con sus comentarios (`@summary`, `@description`, `@requestBody`, `@responseBody` incluidos los errores `403`/`422`). No escribas YAML de OpenAPI a mano.
+- **Código:** TSDoc en los métodos públicos de `app/services/` y `app/controllers/`. Describe el significado, los errores (`@throws`) y ejemplos si el uso no es obvio. **No repitas los tipos** en `@param` ni `@returns`: ya los da TypeScript.
+- **La IA genera el borrador; una persona valida el significado.** No marques como hecha documentación generada sin comprobar que describe el comportamiento real.
+- **Registro de IA:** si una decisión o un documento sale de un prompt significativo, regístralo en `prompts.md`.
+
+### Documentación de librerías: Context7
+
+AdonisJS 7 salió en febrero de 2026 y los modelos apenas la conocen: es fácil generar código de AdonisJS 6 que no funciona en la 7. Cuando generes código que use AdonisJS 7, Lucid, VineJS, Bouncer o React 19, consulta la documentación actualizada con **Context7 MCP** (`use context7`). Si la pregunta cruza varias librerías, consulta una por turno.
+
+Instalación (la hace el desarrollador, una vez): `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
+
+### Pendiente para entregas 2 y 3
+
+Validación de la documentación en CI (markdownlint-cli2, lychee para enlaces rotos, Vale para estilo y cobertura de TSDoc con TypeDoc) y un `llms.txt` en la raíz.
 
 ## Notas del entorno
 
-El repositorio está dentro de iCloud Drive. Evita directorios pesados sin ignorar (p. ej. `node_modules/`, `.venv/`) y vigila la aparición de ficheros duplicados del tipo `archivo 2.md`.
+La copia local de trabajo del autor (el clon en su Mac, no el repositorio de GitHub) está dentro de iCloud Drive. Si trabajas en esa copia, evita directorios pesados sin ignorar (p. ej. `node_modules/`, `.venv/`) y vigila la aparición de ficheros duplicados del tipo `archivo 2.md`.

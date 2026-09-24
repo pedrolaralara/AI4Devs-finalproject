@@ -148,6 +148,26 @@ Se completarán en la entrega 2, cuando exista el código.
 
 ### **2.1. Diagrama de arquitectura:**
 
+Los diagramas siguen el modelo **C4**: primero el contexto (quién usa el sistema y con qué se relaciona) y después los contenedores y componentes internos.
+
+#### Nivel 1 · Contexto
+
+```mermaid
+flowchart LR
+    Req["👤 Usuario<br/>[Persona]<br/>Abre y sigue sus peticiones"]
+    Op["👤 Operador<br/>[Persona]<br/>Atiende las peticiones"]
+    Sup["👤 Supervisor<br/>[Persona]<br/>Reparte y supervisa"]
+    Sys["Requesto<br/>[Sistema de software]<br/>Gestión de tickets de tipo Request, on-premise"]
+    LLM["Proveedor LLM<br/>[Sistema externo o local]<br/>Modelo de lenguaje del agente de IA"]
+
+    Req -- "Crea, comenta, cancela y cierra tickets" --> Sys
+    Op -- "Se asigna y resuelve tickets" --> Sys
+    Sup -- "Asigna tickets y consulta información" --> Sys
+    Sys -- "Preguntas + herramientas de solo lectura" --> LLM
+```
+
+#### Nivel 2-3 · Contenedores y componentes
+
 ```mermaid
 flowchart LR
     subgraph Cliente["Navegador"]
@@ -179,6 +199,41 @@ flowchart LR
     Agent -- "prompt + tools" --> LLM
 ```
 
+#### Flujo principal · cambio de estado de un ticket
+
+```mermaid
+sequenceDiagram
+    actor Op as Operador
+    participant SPA as SPA React
+    participant API as API AdonisJS
+    participant Pol as Política (Bouncer)
+    participant SM as Máquina de estados
+    participant DB as PostgreSQL
+
+    Op->>SPA: Pulsa "Resolver" (o arrastra la tarjeta a Solved)
+    SPA->>API: POST /api/tickets/42/transitions { to: "solved" }
+    API->>API: Valida sesión y cuerpo (VineJS)
+    API->>Pol: ¿Puede este usuario cambiar el estado del ticket 42?
+    alt Sin permiso
+        Pol-->>API: No
+        API-->>SPA: 403 Forbidden
+    else Con permiso
+        Pol-->>API: Sí
+        API->>SM: Transición in_progress → solved
+        alt Transición no permitida
+            SM-->>API: Error de dominio
+            API-->>SPA: 422 Unprocessable Entity
+        else Transición válida
+            SM->>DB: BEGIN
+            SM->>DB: UPDATE tickets SET status = 'solved', solved_at = now()
+            SM->>DB: INSERT ticket_events (status_changed, in_progress → solved)
+            SM->>DB: COMMIT
+            API-->>SPA: 200 OK + ticket actualizado
+            SPA-->>Op: Muestra el nuevo estado y el historial
+        end
+    end
+```
+
 **Patrón:** arquitectura **cliente-servidor** con un frontend **SPA** desacoplado que consume una **API REST**. El backend es un **monolito modular por capas**: controllers (HTTP) → servicios de dominio (reglas de negocio) → modelos (persistencia). El flujo de estados del ticket se implementa como una **máquina de estados** en la capa de dominio, que es la única que decide qué transiciones son válidas y quién puede hacerlas.
 
 **Por qué esta arquitectura:**
@@ -198,12 +253,19 @@ flowchart LR
 - Escala en vertical o replicando la API; no se diseña para grandes volúmenes, porque no es el caso de uso.
 - **Agente de IA frente a on-premise:** si el proveedor del LLM es un servicio en la nube, los datos consultados salen de la infraestructura propia. Por eso el proveedor es configurable (API externa o modelo local compatible) y el agente solo tiene herramientas de lectura.
 
+**Decisiones de arquitectura (ADRs).** El razonamiento completo de cada decisión, con las alternativas descartadas, está en [`docs/adr/`](docs/adr/README.md):
+- [SPA React + API REST en lugar de AdonisJS + Inertia](docs/adr/20260924-spa-react-y-api-rest-en-lugar-de-inertia.md)
+- [Autenticación por sesión con cookie en lugar de tokens de acceso](docs/adr/20260924-autenticacion-por-sesion-con-cookie.md)
+- [Monorepo con npm workspaces](docs/adr/20260924-monorepo-con-npm-workspaces.md)
+- [Prioridad calculada como columna generada en PostgreSQL](docs/adr/20260924-prioridad-como-columna-generada.md)
+- [Agente de IA con herramientas de solo lectura y proveedor LLM configurable](docs/adr/20260924-agente-ia-solo-lectura-y-proveedor-configurable.md)
+
 ### **2.2. Descripción de componentes principales:**
 
 | Componente | Tecnología | Responsabilidad |
 |------------|------------|-----------------|
-| **Frontend (SPA)** | React, Vite, TypeScript, React Router, TanStack Query, dnd-kit | Interfaz de usuario: login, lista con filtros, Kanban con arrastrar y soltar, detalle del ticket con comentarios e historial, formulario de creación y chat con el agente de IA. Muestra solo las acciones permitidas para el rol. |
-| **API REST** | AdonisJS 6, TypeScript | Expone los endpoints `/api/*`. Controllers finos que validan la entrada y delegan en los servicios. |
+| **Frontend (SPA)** | React 19, Vite, TypeScript, React Router, TanStack Query, dnd-kit | Interfaz de usuario: login, lista con filtros, Kanban con arrastrar y soltar, detalle del ticket con comentarios e historial, formulario de creación y chat con el agente de IA. Muestra solo las acciones permitidas para el rol. |
+| **API REST** | AdonisJS 7, TypeScript | Expone los endpoints `/api/*`. Controllers finos que validan la entrada y delegan en los servicios. |
 | **Validación** | VineJS (incluido en AdonisJS) | Valida los cuerpos de las peticiones (p. ej. urgencia e impacto entre 1 y 5). |
 | **Autenticación** | `@adonisjs/auth` con guard de sesión | Login con email y contraseña; sesión en cookie `HttpOnly`. |
 | **Autorización** | `@adonisjs/bouncer` | Políticas por rol: quién puede ver, comentar, asignar o cambiar de estado un ticket. |
@@ -213,6 +275,7 @@ flowchart LR
 | **Agente de IA** | Módulo del backend + LLM con *tool calling* | Recibe preguntas en lenguaje natural y las responde llamando a herramientas de solo lectura (buscar tickets, contar por estado o prioridad, carga por operador), que reutilizan los servicios de dominio y respetan los permisos del usuario. |
 | **Reverse proxy** | Nginx | Sirve los estáticos de la SPA y redirige `/api/*` a la API. Termina TLS. |
 | **Calidad de código** | Biome | Lint y formato en todo el monorepo. |
+| **Documentación de la API** | `adonis-autoswagger` + Scalar | Genera la especificación OpenAPI a partir de las rutas, los validadores y los comentarios de los controllers, y la publica en `/docs`. |
 
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
@@ -246,6 +309,7 @@ AI4Devs-finalproject/
 ├── docker/                     # Dockerfiles y configuración de Nginx
 ├── docker-compose.yml          # Entorno local y despliegue on-premise
 ├── PRD/                        # Requisitos de producto
+├── docs/adr/                   # Decisiones de arquitectura (ADRs, formato MADR)
 ├── biome.json                  # Lint y formato comunes
 ├── AGENTS.md / CLAUDE.md       # Contexto para asistentes de IA
 ├── readme.md                   # Documentación del proyecto
