@@ -8,11 +8,12 @@ services:
 
   api:
     <<: *node
-    command: npm run dev --workspace @requesto/api
+    command: npm run dev:api
     environment:
       HOST: 0.0.0.0
       PORT: 3333
       APP_URL: http://localhost:5173
+      SESSION_DRIVER: cookie
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${REQUESTO_DB_USER:-requesto}
@@ -29,7 +30,7 @@ services:
 
   web:
     <<: *node
-    command: npm run dev --workspace @requesto/web -- --host 0.0.0.0
+    command: npm run dev:web
     environment:
       API_PROXY_TARGET: http://api:3333
     ports:

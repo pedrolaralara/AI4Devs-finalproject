@@ -1,5 +1,5 @@
-import app from '@adonisjs/core/services/app'
 import { defineConfig, drivers } from '@adonisjs/core/hash'
+import app from '@adonisjs/core/services/app'
 
 /**
  * Hashing configuration.

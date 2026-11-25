@@ -1,0 +1,27 @@
+{
+  "files": {
+    "includes": [
+      "package.json",
+      "biome.json",
+      "apps/**/*.js",
+      "apps/**/*.json",
+      "apps/**/*.ts",
+      "apps/**/*.tsx",
+      "!!**/.adonisjs",
+      "!!**/node_modules",
+      "!!**/build",
+      "!!**/dist"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded"
+    }
+  }
+}

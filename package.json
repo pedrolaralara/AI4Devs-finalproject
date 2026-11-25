@@ -1,9 +1,25 @@
 {
   "name": "requesto",
   "private": true,
-  "workspaces": ["apps/api", "apps/web"],
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace @requesto/api",
+    "dev:web": "npm run dev --workspace @requesto/web -- --host 0.0.0.0",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "typecheck": "npm run typecheck --workspaces",
+    "check": "biome check . && npm run typecheck",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces"
+  },
   "engines": {
     "node": "^24.0.0",
     "npm": "^11.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.9"
   }
 }
