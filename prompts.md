@@ -228,3 +228,5 @@ El autor aprobó usar un proveedor LLM autoalojado si se habilita el agente en p
 El autor aprobó los controles de configuración propuestos por Codex para el ADR del agente de IA: rechazar una API externa en producción y exigir su activación explícita en desarrollo y demos, con preguntas y datos sintéticos.
 
 **Montaje de la API (PED-37).** El autor autorizó iniciar la API tras verificar el acceso a Context7. Codex consultó el starter oficial de AdonisJS 7 y lo ejecutó con Node 24 en Docker. Adaptó el starter al workspace npm y retiró sus ejemplos de autenticación, SQLite y las configuraciones de ESLint y Prettier. La primera comprobación HTTP detectó que el almacén de sesiones de base de datos del starter seguía intentando resolver Lucid. Codex dejó solo el almacén de cookies definido en la arquitectura y repitió la comprobación. TypeScript pasó y `GET /api/health` devolvió `200`.
+
+**Montaje de la web (PED-38).** Codex consultó Context7 para montar la raíz de React 19 y cancelar la petición al desmontar el componente. Preparó el workspace con Vite y un proxy de desarrollo a AdonisJS. La pantalla inicial muestra el estado de la conexión a la API.

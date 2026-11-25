@@ -163,7 +163,14 @@ docker compose -f compose.dev.yml run --rm -p 127.0.0.1:3333:3333 -e HOST=0.0.0.
 curl --fail http://127.0.0.1:3333/api/health
 ```
 
-La ruta devuelve `{"status":"ok"}`. La conexión de PostgreSQL y el arranque de la web están pendientes.
+La ruta devuelve `{"status":"ok"}`. Para arrancar la web y la API juntas, usa:
+
+```bash
+docker compose -f compose.dev.yml up api web
+curl --fail http://127.0.0.1:5173/api/health
+```
+
+Abre `http://localhost:5173` para comprobar que la web muestra «API conectada». Vite reenvía las llamadas a `/api` al servicio de AdonisJS. La conexión de PostgreSQL se añadirá en PED-39.
 
 ---
 

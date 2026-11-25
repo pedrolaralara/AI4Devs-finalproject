@@ -1,10 +1,27 @@
 services:
-  node:
+  node: &node
     image: node:24-bookworm-slim
     working_dir: /workspace
     volumes:
       - .:/workspace
       - node_modules:/workspace/node_modules
+
+  api:
+    <<: *node
+    command: npm run dev --workspace @requesto/api
+    environment:
+      HOST: 0.0.0.0
+      APP_URL: http://localhost:5173
+
+  web:
+    <<: *node
+    command: npm run dev --workspace @requesto/web -- --host 0.0.0.0
+    environment:
+      API_PROXY_TARGET: http://api:3333
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - api
 
 volumes:
   node_modules:
