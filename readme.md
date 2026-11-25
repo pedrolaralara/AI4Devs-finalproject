@@ -153,24 +153,24 @@ Al preparar la API por primera vez, copia la configuración de ejemplo y genera 
 
 ```bash
 cp -n apps/api/.env.example apps/api/.env
-docker compose -f compose.dev.yml run --rm -w /workspace/apps/api node node ace generate:key
+docker compose -f compose.dev.yml run --rm --no-deps -w /workspace/apps/api api node ace generate:key
 ```
 
 Arranca la API en Docker y comprueba su respuesta desde otra terminal:
 
 ```bash
-docker compose -f compose.dev.yml run --rm -p 127.0.0.1:3333:3333 -e HOST=0.0.0.0 node npm run dev --workspace @requesto/api
+docker compose -f compose.dev.yml run --rm -p 127.0.0.1:3333:3333 api
 curl --fail http://127.0.0.1:3333/api/health
 ```
 
-La ruta devuelve `{"status":"ok"}`. Para arrancar la web y la API juntas, usa:
+La ruta devuelve `{"status":"ok"}` cuando la API puede consultar PostgreSQL. Para arrancar la web, la API y PostgreSQL, usa:
 
 ```bash
 docker compose -f compose.dev.yml up api web
 curl --fail http://127.0.0.1:5173/api/health
 ```
 
-Abre `http://localhost:5173` para comprobar que la web muestra «API conectada». Vite reenvía las llamadas a `/api` al servicio de AdonisJS. La conexión de PostgreSQL se añadirá en PED-39.
+Abre `http://localhost:5173` para comprobar que la web muestra «API conectada». Vite reenvía las llamadas a `/api` al servicio de AdonisJS. PostgreSQL usa un volumen persistente y es accesible dentro de la red de Compose. El archivo `compose.dev.yml` usa valores de desarrollo, que se pueden ajustar con `REQUESTO_DB_USER`, `REQUESTO_DB_PASSWORD` y `REQUESTO_DB_NAME` al inicializar el volumen.
 
 ---
 

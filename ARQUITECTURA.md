@@ -429,7 +429,7 @@ flowchart LR
 
 | Entorno | Cómo se ejecuta |
 |---------|-----------------|
-| **Local** | `docker compose up` para PostgreSQL; API y SPA con sus servidores de desarrollo (`node ace serve --hmr` y Vite). |
+| **Local** | `docker compose -f compose.dev.yml up api web` arranca también PostgreSQL con volumen persistente. La web consulta `/api/health` a través de Vite y AdonisJS comprueba PostgreSQL. |
 | **CI** | GitHub Actions en cada PR: Biome, `tsc --noEmit`, tests de API (con PostgreSQL de servicio), tests de componentes y E2E. |
 | **On-premise** | Docker Compose con `web`, `api` y `db`. Las migraciones se ejecutan al arrancar la API. |
 | **Demo (entrega final)** | El mismo `docker-compose.yml` en un servidor con URL pública. |

@@ -11,7 +11,21 @@ services:
     command: npm run dev --workspace @requesto/api
     environment:
       HOST: 0.0.0.0
+      PORT: 3333
       APP_URL: http://localhost:5173
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${REQUESTO_DB_USER:-requesto}
+      DB_PASSWORD: ${REQUESTO_DB_PASSWORD:-requesto_dev}
+      DB_DATABASE: ${REQUESTO_DB_NAME:-requesto}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3333/api/health').then(r => { if (!r.ok) process.exitCode = 1 }).catch(() => { process.exitCode = 1 })"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
 
   web:
     <<: *node
@@ -21,7 +35,23 @@ services:
     ports:
       - "127.0.0.1:5173:5173"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: ${REQUESTO_DB_USER:-requesto}
+      POSTGRES_PASSWORD: ${REQUESTO_DB_PASSWORD:-requesto_dev}
+      POSTGRES_DB: ${REQUESTO_DB_NAME:-requesto}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 2s
+      timeout: 3s
+      retries: 15
 
 volumes:
   node_modules:
+  postgres_data:
