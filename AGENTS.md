@@ -185,6 +185,8 @@ Preferencias del autor (Pedro Lara Lara, iniciales **PLL**) para trabajar con as
 
 Estas reglas siguen las recomendaciones del módulo 4 del máster. El backlog, las épicas y el plan por entregas están en la sección 5 del `readme.md`.
 
+El [proyecto Requesto en Linear](https://linear.app/pedrolaralara/project/requesto-6e796c71e30d/overview) es el tablero de ejecución. El PRD, el README y los changes de OpenSpec viven en Git. En Linear, cada épica del PRD se representa como un issue padre, cada historia `HU-xx` como un subissue de su épica y cada tarea técnica `REQ-xx` como un subissue de su historia principal. Los issues enlazan a sus referencias en el repositorio. Cada entrega tiene un hito de proyecto en Linear con sus historias. El agente de IA y el dashboard quedan aplazados. El Kanban se revisa al final de la tercera entrega, si queda capacidad.
+
 ### Historias listas para trabajar con IA
 
 Una historia solo entra en desarrollo si:
