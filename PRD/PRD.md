@@ -19,7 +19,7 @@ Tener una app web, **Requesto**, para la gestión de mis tickets. No es un clon 
 | Valor | Descripción |
 |-------|-------------|
 | Continuidad | El servicio de tickets sigue funcionando tras el EOL de JSM Data Center. |
-| Control de los datos | Todo se queda en la infraestructura de la empresa. |
+| Control de los datos | Los datos de producción se procesan dentro de la infraestructura de la empresa. |
 | Simplicidad | Sin tipos de issue, formularios ni workflows configurables que nadie usa. |
 | Explotación con IA | Un agente de IA responde preguntas sobre los tickets en lenguaje natural. |
 
@@ -54,6 +54,8 @@ Organizado en dos épicas. El detalle de cada historia está en la sección 5 de
 
 **Filtros** (lista y Kanban): estado, prioridad, assignee, reporter, texto libre, "mis tickets" y "sin asignar".
 
+El MVP permite crear, consultar, actualizar y cancelar tickets. Cuando un ticket ya no procede, se cancela y pasa a `Canceled`, con su historial disponible para consulta.
+
 ### Fuera de alcance del MVP
 
 - Tipos de ticket, formularios o workflows configurables.
@@ -63,7 +65,7 @@ Organizado en dos épicas. El detalle de cada historia está en la sección 5 de
 - Acciones masivas sobre varios tickets.
 - Actualización en tiempo real entre usuarios.
 - Migración de los datos existentes en JSM.
-- Borrado de tickets: un ticket que no procede se **cancela** **(asumido)**.
+- Borrado físico de tickets desde la aplicación.
 
 ## 5. El ticket de tipo Request
 
@@ -151,7 +153,7 @@ Flujo principal: `Open → Assigned → In progress → Solved → Closed`. Esta
 - **Seguridad:** autenticación con sesión; las reglas de flujo y permisos se validan siempre en el servidor, no solo en la interfaz.
 - **Trazabilidad:** historial inmutable de todos los cambios del ticket.
 - **Consistencia:** si dos personas cambian el mismo ticket a la vez, solo se aplica un cambio y la otra persona recibe un aviso para recargar.
-- **Agente de IA acotado:** solo puede leer datos, respeta los permisos de quien pregunta y su proveedor LLM es configurable, para poder usar un modelo local si los datos no deben salir de la infraestructura.
+- **Agente de IA acotado:** solo puede leer datos y respeta los permisos de quien pregunta. Si se habilita en producción, usa un proveedor LLM autoalojado en la infraestructura de la empresa. En desarrollo y demos se permite una API externa solo con preguntas y datos sintéticos.
 - **Accesibilidad:** el Kanban se puede usar solo con teclado.
 
 ## 9. Arquitectura
@@ -176,5 +178,5 @@ El detalle está en la sección 2 del `readme.md` y las decisiones justificadas 
 - **Visibilidad:** ¿el usuario ve solo sus tickets o todos?
 - **Edición:** ¿quién puede editar los campos del ticket (título, descripción, urgencia, impacto) y en qué estados?
 - **Dashboard:** ¿dashboard propio o generado por el agente de IA?
-- **Agente de IA:** ¿qué proveedor y modelo (API externa o modelo local)?
+- **Agente de IA:** ¿qué proveedor autoalojado y qué modelo se usarán en producción?
 - Confirmar los supuestos marcados **(asumido)** en este documento.

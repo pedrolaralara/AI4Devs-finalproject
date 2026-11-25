@@ -48,7 +48,7 @@ Rama de esta entrega: `feature/entrega-1-PLL`.
 
 **Qué valor aporta:**
 - **Continuidad:** el servicio de tickets sigue funcionando tras el EOL de JSM Data Center.
-- **Control de los datos:** todo se queda en la infraestructura de la empresa, sin dependencia de un SaaS.
+- **Control de los datos:** los datos de producción se procesan dentro de la infraestructura de la empresa, también cuando se habilita el agente de IA.
 - **Simplicidad:** sin configuración de tipos de issue, esquemas ni workflows que nadie usa.
 - **Explotación de la información con IA:** un agente de IA responde preguntas sobre los tickets en lenguaje natural, sin tener que construir informes a mano.
 
@@ -160,7 +160,7 @@ flowchart LR
     Op["👤 Operador<br/>[Persona]<br/>Atiende las peticiones"]
     Sup["👤 Supervisor<br/>[Persona]<br/>Reparte y supervisa"]
     Sys["Requesto<br/>[Sistema de software]<br/>Gestión de tickets de tipo Request, on-premise"]
-    LLM["Proveedor LLM<br/>[Sistema externo o local]<br/>Modelo de lenguaje del agente de IA"]
+    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
     Req -- "Crea, comenta, cancela y cierra tickets" --> Sys
     Op -- "Se asigna y resuelve tickets" --> Sys
@@ -188,7 +188,7 @@ flowchart LR
         DB[("PostgreSQL")]
     end
 
-    LLM["Proveedor LLM<br/>(configurable)"]
+    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
     SPA -- "HTTPS · JSON" --> Proxy
     Proxy -- "/api/*" --> Ctrl
@@ -259,7 +259,7 @@ sequenceDiagram
 - Una SPA necesita gestionar el estado de la sesión y el enrutado en el cliente, y no tiene SEO (irrelevante en una herramienta interna).
 - Hay que mantener dos aplicaciones y el contrato entre ellas (la API).
 - Escala en vertical o replicando la API; no se diseña para grandes volúmenes, porque no es el caso de uso.
-- **Agente de IA frente a on-premise:** si el proveedor del LLM es un servicio en la nube, los datos consultados salen de la infraestructura propia. Por eso el proveedor es configurable (API externa o modelo local compatible) y el agente solo tiene herramientas de lectura.
+- **Agente de IA on-premise:** usa herramientas de solo lectura. Si se habilita en producción, las preguntas y los resultados de las consultas se procesan con un proveedor LLM autoalojado en la infraestructura de la empresa. En desarrollo y demos se puede usar una API externa solo con preguntas y datos sintéticos.
 
 **Decisiones de arquitectura (ADRs).** El razonamiento completo de cada decisión, con las alternativas descartadas, está en [`docs/adr/`](docs/adr/README.md):
 - [SPA React + API REST en lugar de AdonisJS + Inertia](docs/adr/20260924-spa-react-y-api-rest-en-lugar-de-inertia.md)
@@ -344,7 +344,7 @@ flowchart LR
         Nginx -- "/api/*" --> Api
         Api --> Pg
     end
-    Api -. "opcional" .-> LLM["Proveedor LLM"]
+    Api -. "opcional" .-> LLM["Proveedor LLM autoalojado en producción"]
 ```
 
 **Proceso de despliegue previsto:**
@@ -531,7 +531,7 @@ Ejemplo: cuando un operador pasa el ticket 42 de `assigned` a `in_progress`, se 
 
 ## 4. Especificación de la API
 
-Se documentan los tres endpoints que sostienen el flujo principal: **crear un ticket** (HU-01), **listar tickets con filtros** (HU-02 y HU-05) y **cambiar el estado de un ticket** (HU-04).
+El contrato cubre la **creación de tickets** (HU-01), el **listado con filtros** (HU-02 y HU-05) y la **consulta y ejecución de transiciones** (HU-04 y HU-05).
 
 Esta especificación es el **contrato de diseño** de la entrega 1. En el código, la especificación OpenAPI se generará a partir de las rutas, los validadores y los comentarios de los controllers con `adonis-autoswagger`, y se publicará con Scalar en `/docs`.
 
@@ -676,6 +676,35 @@ paths:
         '422': { $ref: '#/components/responses/ValidationError' }
 
   /tickets/{id}/transitions:
+    get:
+      tags: [Workflow]
+      summary: Consultar las transiciones disponibles de un ticket
+      description: Devuelve las transiciones que el usuario de la sesión puede ejecutar sobre el ticket en su estado actual.
+      operationId: listTicketTransitions
+      parameters:
+        - $ref: '#/components/parameters/TicketId'
+      responses:
+        '200':
+          description: Transiciones disponibles. Devuelve un array vacío si el ticket es visible y el usuario no puede ejecutar ninguna transición.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [to, requiresAssignee]
+                  properties:
+                    to: { $ref: '#/components/schemas/TicketStatus' }
+                    requiresAssignee:
+                      type: boolean
+                      description: Indica si hay que indicar un operador al ejecutar la transición.
+              examples:
+                disponible:
+                  value: [{ to: solved, requiresAssignee: false }]
+                sinTransiciones:
+                  value: []
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
     post:
       tags: [Workflow]
       summary: Cambiar el estado de un ticket

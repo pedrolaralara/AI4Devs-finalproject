@@ -4,6 +4,8 @@
 
 Aceptado (24/09/2026). El proveedor y el modelo concretos están pendientes de decisión.
 
+Actualizado el 25/11/2026 para fijar la política de residencia de datos por entorno.
+
 ## Contexto y problema
 
 Requesto incluye un agente de IA para explotar la información de los tickets en lenguaje natural. Hay dos riesgos:
@@ -24,10 +26,12 @@ Se elige **tool calling sobre herramientas de solo lectura** y **un proveedor LL
 
 * Las herramientas (buscar tickets, contar por estado o prioridad, carga por operador, tiempos de resolución) llaman a los servicios de dominio, que aplican los permisos del usuario que pregunta.
 * El agente no puede crear, modificar ni borrar datos, y nunca genera SQL.
-* El proveedor y el modelo se configuran por variables de entorno. Así la empresa puede elegir entre una API externa y un modelo local sin cambiar el código.
+* El proveedor y el modelo se seleccionan mediante variables de entorno, dentro de la política de cada entorno.
+* Si el agente está habilitado en producción, el proveedor debe estar autoalojado dentro de la infraestructura de la empresa. Las preguntas y los resultados de las herramientas se procesan allí. La aplicación debe rechazar cualquier configuración de una API externa en producción.
+* En desarrollo y demos, una API externa requiere activación explícita y solo puede recibir preguntas y resultados de herramientas basados en datos sintéticos.
 
 ## Consecuencias
 
 * El agente solo responde lo que cubren sus herramientas. Las preguntas nuevas requieren herramientas nuevas.
 * Hay que definir una interfaz de proveedor común, porque no todos los modelos locales soportan *tool calling* con la misma calidad.
-* Queda pendiente elegir el proveedor y el modelo por defecto.
+* Queda pendiente elegir el proveedor autoalojado y el modelo para producción.

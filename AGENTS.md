@@ -27,7 +27,7 @@ No es un clon genérico de JSM: no hay tipos de issue, formularios ni workflows 
 **La fuente de verdad de los requisitos es [`PRD/PRD.md`](PRD/PRD.md)**: alcance, campos, cálculo de prioridad, flujo de estados y permisos, incluidos los puntos pendientes. Resumen:
 
 - **Tipo de ticket:** `Request` (único).
-- **Alcance:** CRUD de tickets, lista, Kanban, detalle, filtros (en lista y Kanban) y explotación de la información mediante un **agente de IA** (dashboards: por decidir).
+- **Alcance:** creación, consulta, actualización y cancelación de tickets, lista, Kanban, detalle, filtros (en lista y Kanban) y explotación de la información mediante un **agente de IA** (dashboards: por decidir).
 - **Campos:** id, tipo, título, descripción, reporter, assignee, estado, fecha de creación, urgencia (1-5), impacto (1-5), prioridad (automática, 1-5, a partir de urgencia × impacto), historial (automático) y comentarios con fecha.
 - **Flujo:** `Open → Assigned → In progress → Solved → Closed`, con los estados alternativos `Pending user` y `Canceled`.
 
@@ -96,7 +96,7 @@ Qué hay que tener en `readme.md` en la rama `feature/entrega-1-PLL`:
 | Descripción del producto: objetivo, características y funcionalidades | 1.1, 1.2 |
 | Arquitectura del sistema y stack tecnológico elegido | 2 (sobre todo 2.1, 2.2 y 2.3) |
 | Modelo de datos (diagrama mermaid con PK/FK y descripción de entidades) | 3 |
-| Historias de usuario (3-5 must-have + 1-2 should-have; en el readme se documentan 3) | 5 |
+| Historias de usuario (3-5 must-have y 1-2 should-have). El README detalla tres must-have (HU-01, HU-04 y HU-05) e incluye dos should-have en el backlog (HU-06 y HU-07). | 5 |
 | Tickets de trabajo (uno de backend, uno de frontend y uno de base de datos) | 6 |
 
 Opcional, pero recomendable adelantarlo: especificación de la API (sección 4, máximo 3 endpoints en OpenAPI). Las secciones 1.3 (diseño y UX), 1.4 (instalación), 2.4 a 2.6 (despliegue, seguridad, tests) y 7 (pull requests) se completan en entregas posteriores.
@@ -159,7 +159,7 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 - **Infraestructura:** Docker Compose con tres servicios (`web` con Nginx, `api`, `db` con PostgreSQL). CI con GitHub Actions.
 - **Estructura:** monorepo con npm workspaces: `apps/api`, `apps/web`, `e2e/`, `docker/`. La estructura completa está en la sección 2.3 del `readme.md`.
 
-> Pendiente: proveedor y modelo concretos del LLM (API externa o modelo local, por la restricción on-premise).
+> Si se habilita el agente en producción, el proveedor LLM debe estar autoalojado en la infraestructura de la empresa. En desarrollo y demos se admite una API externa solo con preguntas y datos sintéticos. Queda por elegir el proveedor autoalojado y el modelo.
 
 ## Convenciones
 

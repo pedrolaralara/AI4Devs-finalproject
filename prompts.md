@@ -50,7 +50,7 @@ Un único modelo para toda la fase de especificación: en esta entrega no hay c�
   - Una **DoD única** para todos los tickets, que el módulo 4 señala como antipatrón. Se sustituyó por DoD por tipo de trabajo.
   - Criterios de aceptación inventados por la IA mezclados con los del autor ("false completeness"). Se marcaron como **(asumido)**.
   - Una contradicción entre la especificación de la API y la HU-04 (qué pasa si un operador asigna a otra persona), detectada y corregida por la propia IA al redactar la sección 4.
-- **Revisión de todos los supuestos:** la IA no dio nada por cerrado sin listarlo. Los puntos abiertos (salida de *Pending user*, reapertura, visibilidad, borrado y proveedor LLM) quedaron como pendientes en el PRD y en los ADRs.
+- **Revisión de todos los supuestos:** quedaron abiertas la salida de *Pending user*, la reapertura, la visibilidad, el proveedor LLM, los estados desde los que se puede cancelar un ticket y quién puede editar sus campos y en qué estados. El borrado físico también estaba pendiente en la primera entrega. El autor lo descartó para el MVP al revisar el feedback (véase la sección 7).
 
 ---
 
@@ -218,3 +218,11 @@ si, por favor
 ### 7. Pull Requests
 
 Se completará en las entregas 2 y 3.
+
+**Revisión de la entrega 1.** A partir de los [comentarios de CodeRabbit en la PR #341](https://github.com/LIDR-academy/AI4Devs-finalproject/pull/341), el autor pidió a Codex una lista de correcciones y que las propusiera una a una. Codex detectó que los tickets de trabajo ya definían el `GET` de transiciones que faltaba en el contrato OpenAPI. El autor aprobó añadirlo y confirmó que la respuesta sería `200` con `[]` cuando el ticket fuera visible y el usuario no tuviera transiciones disponibles.
+
+El autor confirmó que, si un ticket ya no procede, el MVP permite cancelarlo y conserva su historial. Codex incorporó al PRD la exclusión del borrado físico desde la aplicación y alineó el resumen de alcance de `AGENTS.md`.
+
+El autor aprobó usar un proveedor LLM autoalojado si se habilita el agente en producción. En desarrollo y demos se permite una API externa solo con preguntas y datos sintéticos. Codex trasladó la decisión al PRD, el README, la arquitectura y el contexto para asistentes. La elección del proveedor autoalojado y el modelo sigue abierta.
+
+El autor aprobó los controles de configuración propuestos por Codex para el ADR del agente de IA: rechazar una API externa en producción y exigir su activación explícita en desarrollo y demos, con preguntas y datos sintéticos.

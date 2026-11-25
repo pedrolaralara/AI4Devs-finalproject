@@ -60,7 +60,7 @@ flowchart LR
     Op["👤 Operador<br/>[Persona]<br/>Atiende las peticiones"]
     Sup["👤 Supervisor<br/>[Persona]<br/>Reparte y supervisa"]
     Sys["Requesto<br/>[Sistema de software]<br/>Gestión de tickets de tipo Request, on-premise"]
-    LLM["Proveedor LLM<br/>[Sistema externo o local]<br/>Modelo de lenguaje del agente de IA"]
+    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
     Req -- "Crea, comenta, cancela y cierra tickets" --> Sys
     Op -- "Se asigna y resuelve tickets" --> Sys
@@ -73,7 +73,7 @@ flowchart LR
 | Usuario (`requester`) | Abre tickets, comenta, cancela los suyos y cierra los resueltos. |
 | Operador (`agent`) | Se asigna tickets y los mueve por el flujo hasta resolverlos. |
 | Supervisor (`supervisor`) | Todo lo del operador, además de asignar tickets a otros y consultar la información. |
-| Proveedor LLM | Único sistema externo. Puede ser una API en la nube o un modelo autoalojado. Solo recibe las preguntas y los resultados de herramientas de lectura. |
+| Proveedor LLM | Autoalojado dentro de la infraestructura de la empresa cuando se habilita el agente en producción. Recibe las preguntas y los resultados de herramientas de lectura. Se permite una API externa en desarrollo y demos solo con preguntas y datos sintéticos. |
 
 ## 4. Estrategia de solución
 
@@ -101,7 +101,7 @@ flowchart LR
         DB[("db<br/>[PostgreSQL]<br/>Usuarios, tickets, comentarios, historial")]
     end
 
-    LLM["Proveedor LLM<br/>[externo o local]"]
+    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
     SPA -- "HTTPS · JSON · cookie de sesión" --> Proxy
     Proxy -- "/api/*" --> API
@@ -405,6 +405,7 @@ El contrato de diseño (OpenAPI 3.0) de los endpoints principales está en la **
 
 Convenciones:
 - Rutas bajo `/api`, recursos en plural (`/tickets`) y acciones de flujo como subrecurso (`/tickets/:id/transitions`).
+- `GET /api/tickets/:id/transitions` devuelve los destinos permitidos para el usuario de la sesión y si cada transición requiere indicar un operador. Devuelve `200` con `[]` si el ticket es visible y el usuario no tiene transiciones disponibles.
 - JSON con claves en *camelCase*.
 - Códigos: `200`/`201` éxito, `401` sin sesión, `403` sin permiso, `404` no existe o no es visible, `409` conflicto de concurrencia, `422` validación o transición inválida.
 - Errores de validación en formato VineJS (`{ errors: [{ field, rule, message }] }`); errores de negocio como `{ code, message }`.
@@ -422,7 +423,7 @@ flowchart LR
         Nginx -- "/api/*" --> Api
         Api --> Pg
     end
-    Api -. "opcional" .-> LLM["Proveedor LLM"]
+    Api -. "opcional" .-> LLM["Proveedor LLM autoalojado en producción"]
     CI["GitHub Actions"] -. "imágenes Docker" .-> Host
 ```
 
