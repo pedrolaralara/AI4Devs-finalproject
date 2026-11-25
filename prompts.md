@@ -232,3 +232,5 @@ El autor aprobó los controles de configuración propuestos por Codex para el AD
 **Montaje de la web (PED-38).** Codex consultó Context7 para montar la raíz de React 19 y cancelar la petición al desmontar el componente. Preparó el workspace con Vite y un proxy de desarrollo a AdonisJS. La pantalla inicial muestra el estado de la conexión a la API.
 
 **Conexión con PostgreSQL (PED-39).** Codex consultó en Context7 la configuración de Lucid y su API de consulta. Añadió PostgreSQL al Compose de desarrollo y usó `SELECT 1` en el endpoint de salud para verificar la conexión desde AdonisJS a través del proxy de Vite.
+
+**Entorno de pruebas (PED-41).** Codex preparó un Compose independiente con PostgreSQL temporal. Añadió una prueba de Japa que verifica la base activa y la respuesta del endpoint de salud, y dos pruebas de Vitest que comprueban qué muestra la pantalla cuando la API responde o no está disponible.

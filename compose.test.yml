@@ -1,0 +1,43 @@
+name: requesto-test
+
+services:
+  db-test:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: requesto_test
+      POSTGRES_PASSWORD: requesto_test
+      POSTGRES_DB: requesto_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U requesto_test -d requesto_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  tests:
+    image: node:24-bookworm-slim
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    environment:
+      NODE_ENV: test
+      HOST: 127.0.0.1
+      PORT: 3333
+      APP_URL: http://127.0.0.1:3333
+      APP_KEY: requesto-test-key-only-for-local-tests
+      LOG_LEVEL: error
+      SESSION_DRIVER: cookie
+      DB_HOST: db-test
+      DB_PORT: 5432
+      DB_USER: requesto_test
+      DB_PASSWORD: requesto_test
+      DB_DATABASE: requesto_test
+    depends_on:
+      db-test:
+        condition: service_healthy
+    command: ["sh", "-ec", "npm ci --include=dev && npm test"]
+
+volumes:
+  node_modules:

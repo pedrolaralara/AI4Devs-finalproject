@@ -186,10 +186,15 @@ Para ejecutar los comandos con Node 24 y la configuración local de la API, usa 
 ```bash
 docker compose -f compose.dev.yml run --rm -T --no-deps api npm run check
 docker compose -f compose.dev.yml run --rm -T --no-deps api npm run build
-docker compose -f compose.dev.yml run --rm -T api npm test
 ```
 
-La configuración de Japa, Vitest y la base aislada de pruebas se completa en PED-41.
+Para ejecutar Japa y Vitest, usa el Compose de pruebas desde la raíz:
+
+```bash
+docker compose -f compose.test.yml up --abort-on-container-exit --exit-code-from tests
+```
+
+Este comando instala las dependencias desde el lockfile y propaga el código de salida de las pruebas. La suite de Japa usa `requesto_test`, una instancia de PostgreSQL con almacenamiento temporal separada de desarrollo. Vitest prueba la web con Testing Library y simula la respuesta HTTP. Puedes retirar los contenedores detenidos con `docker compose -f compose.test.yml down`.
 
 ---
 
