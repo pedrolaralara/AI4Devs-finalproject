@@ -46,8 +46,8 @@ En código se usa `requester` en lugar de `user` para no confundir el rol con la
 | Entrega | Estado |
 |---------|--------|
 | 1 · Documentación técnica | ✅ **Entregada el 24/09/2026** (PR desde `feature/entrega-1-PLL` y formulario enviado). |
-| 2 · Código funcional | ⏳ **Siguiente, sin empezar.** Vence el 22/10/2026. |
-| 3 · Entrega final | Pendiente. Vence el 12/11/2026. |
+| 2 · Código funcional | **En curso:** montaje del entorno en PED-25. Plazo ordinario: 22/10/2026. |
+| 3 · Entrega final | Pendiente. Prórroga aprobada hasta el 26/11/2026. |
 
 **No generes scaffolding ni código de aplicación** hasta que el autor arranque la entrega 2 y lo pida. Al arrancarla:
 
@@ -207,10 +207,13 @@ Cuando generes historias o tickets, no les des a todas la misma forma: indica su
 
 ### De historia a código (entregas 2 y 3)
 
+Antes de empezar una historia o una tarea, desglosa sus pasos en subtareas bajo el issue padre en Linear. Reutiliza las que ya existan. Da a cada subtarea un resultado verificable, indica las dependencias que afecten al orden y mantén su estado al día: **Todo** si está pendiente, **In Progress** cuando se empiece y **Done** cuando se haya verificado el resultado.
+
 1. Una historia → un **change de OpenSpec**, como primera tarea técnica al empezar la historia. La historia define el *qué*; el change, el *cómo*. El agente trabaja sobre el change, no sobre la historia directamente.
-2. Una historia o ticket → una rama → una pull request pequeña que enlaza la historia y aplica la DoD de su tipo.
-3. Cada PR lleva una etiqueta de **origen**: `human`, `human+copilot`, `agent` o `agent+human-review`. Sirve para medir la calidad según el origen, no para inflar la velocidad.
-4. Toda PR la revisa al menos una persona antes de integrarla, aunque la haya revisado un agente.
+2. Antes de trabajar en una historia o tarea de Linear, crea una rama de trabajo propia que incluya el identificador del issue. Abre una pull request pequeña que enlace el issue y aplique la DoD de su tipo.
+3. Al terminar la tarea, ejecuta sus comprobaciones y presenta el resultado al autor. Su confirmación de que el resultado está bien autoriza el commit de esa tarea. Haz push solo cuando el autor lo pida.
+4. Cada PR lleva una etiqueta de **origen**: `human`, `human+copilot`, `agent` o `agent+human-review`. Sirve para medir la calidad según el origen, no para inflar la velocidad.
+5. Toda PR la revisa al menos una persona antes de integrarla, aunque la haya revisado un agente.
 
 ### Definition of Done por tipo de trabajo
 

@@ -1,0 +1,6 @@
+schema: spec-driven
+
+context: |
+  Requesto es una aplicación web on-premise para gestionar un único tipo de ticket.
+  Consulta PRD/PRD.md para requisitos y ARQUITECTURA.md para decisiones técnicas.
+  Consulta AGENTS.md para las convenciones y la Definition of Done.

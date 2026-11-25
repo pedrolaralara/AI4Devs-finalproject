@@ -140,7 +140,30 @@ Se completará en la entrega final, con capturas o vídeo de la aplicación func
 
 ### **1.4. Instrucciones de instalación:**
 
-Se completarán en la entrega 2, cuando exista el código.
+Para usar Node 24 y npm con Docker Desktop, ejecuta desde la raíz:
+
+```bash
+docker compose -f compose.dev.yml run --rm node node --version
+docker compose -f compose.dev.yml run --rm node npm ci
+```
+
+El contenedor monta el código del repositorio y guarda `node_modules` en un volumen de Docker.
+
+Al preparar la API por primera vez, copia la configuración de ejemplo y genera su clave local:
+
+```bash
+cp -n apps/api/.env.example apps/api/.env
+docker compose -f compose.dev.yml run --rm -w /workspace/apps/api node node ace generate:key
+```
+
+Arranca la API en Docker y comprueba su respuesta desde otra terminal:
+
+```bash
+docker compose -f compose.dev.yml run --rm -p 127.0.0.1:3333:3333 -e HOST=0.0.0.0 node npm run dev --workspace @requesto/api
+curl --fail http://127.0.0.1:3333/api/health
+```
+
+La ruta devuelve `{"status":"ok"}`. La conexión de PostgreSQL y el arranque de la web están pendientes.
 
 ---
 

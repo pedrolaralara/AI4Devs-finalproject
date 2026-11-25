@@ -1,1 +1,9 @@
 .idea/
+node_modules/
+.adonisjs/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
