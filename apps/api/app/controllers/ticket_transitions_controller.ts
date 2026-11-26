@@ -1,5 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import { listTicketTransitions, updateTicketWorkflow } from '#services/update_ticket_workflow'
+import {
+  listEligibleAssignees,
+  listTicketTransitions,
+  updateTicketWorkflow,
+} from '#services/update_ticket_workflow'
 import { ticketTransitionValidator, unknownTransitionFields } from '#validators/ticket_transition'
 import {
   activeUser,
@@ -10,6 +14,33 @@ import {
 } from './ticket_http.js'
 
 export default class TicketTransitionsController {
+  /**
+   * @eligibleAssignees
+   * @summary Consultar los operadores elegibles
+   * @description Devuelve los operadores activos disponibles para la asignación del ticket.
+   * @paramPath id - Identificador decimal del ticket - @type(string) @required
+   * @responseBody 200 - <TicketReporter[]> - Operadores elegibles
+   * @responseBody 401 - <SessionError> - UNAUTHENTICATED
+   * @responseBody 403 - <SessionError> - FORBIDDEN
+   * @responseBody 404 - <SessionError> - TICKET_NOT_FOUND
+   */
+  async eligibleAssignees({ auth, params, response }: HttpContext) {
+    const actor = await activeUser(auth)
+    if (!actor) return unauthenticated(response)
+    const id: string = params.id
+    if (!validTicketId(id)) return ticketNotFound(response)
+
+    const result = await listEligibleAssignees(id, actor)
+    if (result.kind === 'missing') return ticketNotFound(response)
+    if (result.kind === 'forbidden') {
+      return response.forbidden({
+        code: 'FORBIDDEN',
+        message: 'Solo los supervisores pueden consultar los operadores elegibles.',
+      })
+    }
+    return result.operators
+  }
+
   /**
    * @index
    * @summary Consultar las acciones del flujo

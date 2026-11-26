@@ -1,4 +1,5 @@
 import db from '@adonisjs/lucid/services/db'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import { DateTime } from 'luxon'
 import TicketEvent from '#models/ticket_event'
 import type User from '#models/user'
@@ -9,11 +10,32 @@ import { ticketDetailQuery } from './view_ticket.js'
 
 type TransitionInput = Awaited<ReturnType<typeof ticketTransitionValidator.validate>>
 
+function activeOperators(client: TransactionClientContract) {
+  return client.from('users').where({ role: 'agent', is_active: true })
+}
+
 /** Lists only actions permitted on a visible ticket. */
 export function listTicketTransitions(id: string, actor: User) {
   return db.transaction(async (client) => {
     const ticket = await visibleTickets(actor, client).where('id', id).first()
     return ticket ? availableTransitions(ticket, actor) : null
+  })
+}
+
+/** Lists candidates from the same eligibility rule used to assign the ticket. */
+export function listEligibleAssignees(id: string, actor: User) {
+  return db.transaction(async (client) => {
+    const ticket = await visibleTickets(actor, client).where('id', id).first()
+    if (!ticket) return { kind: 'missing' } as const
+    if (actor.role !== 'supervisor') return { kind: 'forbidden' } as const
+    if (evaluateTransition(ticket, actor, 'assigned').kind !== 'allowed') {
+      return { kind: 'found', operators: [] } as const
+    }
+
+    const query = activeOperators(client).select('id', 'full_name as fullName')
+    if (ticket.assigneeId) query.whereNot('id', ticket.assigneeId)
+    const operators = await query.orderBy('full_name').orderBy('id')
+    return { kind: 'found', operators } as const
   })
 }
 
@@ -40,11 +62,7 @@ export function updateTicketWorkflow(id: string, actor: User, input: TransitionI
         return { kind: 'invalid_assignee' } as const
       }
 
-      const operator = await client
-        .from('users')
-        .where({ id: selected, role: 'agent', is_active: true })
-        .forShare()
-        .first()
+      const operator = await activeOperators(client).where('id', selected).forShare().first()
       if (!operator) return { kind: 'invalid_assignee' } as const
       assigneeId = selected
     } else if (input.assigneeId !== undefined) {

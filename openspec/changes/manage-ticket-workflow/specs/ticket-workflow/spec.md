@@ -62,6 +62,12 @@ La API SHALL reutilizar la visibilidad del detalle. Un ticket inexistente y uno 
 - **WHEN** una sesión activa solicita `GET /api/tickets/:id/transitions` de un ticket visible
 - **THEN** recibe `200` con `[{ to, requiresAssignee }]`. Si no hay acciones posibles recibe `[]`
 
+#### Scenario: Consultar las opciones de asignación
+
+- **GIVEN** un supervisor con una sesión activa y un ticket visible
+- **WHEN** solicita `GET /api/tickets/:id/eligible-assignees`
+- **THEN** recibe `200` con `[{ id, fullName }]` de operadores activos, excluyendo al asignado actual. Sin acción de asignar o reasignar recibe `[]`. Una sesión activa de otro rol recibe `403` si puede ver el ticket, o `404` si está fuera de su visibilidad
+
 #### Scenario: Ejecutar una acción válida
 
 - **GIVEN** una sesión activa, CSRF válido y una acción permitida

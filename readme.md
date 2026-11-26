@@ -626,6 +626,8 @@ El detalle de HU-03 usa `GET /api/tickets/:id`. Devuelve los campos, `comments` 
 
 El flujo de HU-04 publica `GET` y `POST /api/tickets/:id/transitions`. El detalle devuelve `workflowRevision` y el POST espera ese valor como `expectedRevision`. Si la revisión ya cambió, el POST devuelve `409`. La [matriz de HU-04](openspec/changes/manage-ticket-workflow/proposal.md#trazabilidad) enlaza criterios y pruebas.
 
+Para asignar o reasignar, un supervisor consulta `GET /api/tickets/:id/eligible-assignees`. Recibe los identificadores y nombres de operadores activos, excluido el asignado actual. El contrato se publica en el OpenAPI generado.
+
 El YAML de esta sección conserva el **contrato de diseño de tickets** de la entrega 1.
 
 **Convenciones comunes:**

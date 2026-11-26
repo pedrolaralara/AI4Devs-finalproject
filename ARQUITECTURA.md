@@ -414,6 +414,7 @@ Convenciones:
 - Rutas bajo `/api`, recursos en plural (`/tickets`) y acciones de flujo como subrecurso (`/tickets/:id/transitions`).
 - `GET /api/tickets/:id` aplica la visibilidad en la consulta de PostgreSQL y devuelve el ticket, `comments` e `history` desde la misma instantánea. Ambas colecciones se ordenan de más antigua a más reciente; el identificador desempata fechas iguales. La API devuelve el mismo `404` para un ticket inexistente y para uno fuera de la visibilidad.
 - `GET /api/tickets/:id/transitions` devuelve los destinos permitidos para el usuario de la sesión y si cada transición requiere indicar un operador. Devuelve `200` con `[]` si el ticket es visible y el usuario no tiene transiciones disponibles.
+- `GET /api/tickets/:id/eligible-assignees` ofrece al supervisor los operadores activos disponibles para asignar o reasignar el ticket. Excluye al operador ya asignado y devuelve solo identificador y nombre.
 - El detalle devuelve `workflowRevision` y la escritura exige `expectedRevision`. La API actualiza el estado y el asignado con una comparación de revisión y guarda las marcas de tiempo y los eventos en esa misma transacción.
 - JSON con claves en *camelCase*. Los identificadores de ticket y usuario se representan como cadenas decimales para conservar la precisión de PostgreSQL.
 - Códigos: `200`/`201` éxito, `401` sin sesión, `403` sin permiso, `404` no existe o no es visible, `409` conflicto de concurrencia, `422` validación o transición inválida.

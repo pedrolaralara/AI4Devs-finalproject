@@ -113,6 +113,14 @@ test('requires an authorized session and rejects invalid or forbidden requests',
       try {
         const ticket = await Ticket.create({ ...ticketData, reporterId: reporter.id })
         const url = `/api/tickets/${ticket.id}/transitions`
+        const eligibleUrl = `/api/tickets/${ticket.id}/eligible-assignees`
+        const unauthenticatedOptions = await client.get(eligibleUrl)
+        unauthenticatedOptions.assertStatus(401)
+        const forbiddenOptions = await client
+          .get(eligibleUrl)
+          .header('Cookie', reporterHeaders.Cookie)
+        forbiddenOptions.assertStatus(403)
+
         const input = { to: 'assigned', expectedRevision: 0 }
         const csrf = await client.get('/api/auth/csrf')
         const anonymous = await client.post(url).headers(csrfHeaders(csrf)).json(input)
@@ -252,5 +260,41 @@ test('rolls back the state and revision if the history write fails', async ({ as
     canceled.assertStatus(200)
     canceled.assertBodyContains({ status: 'canceled', workflowRevision: 1 })
     assert.isString(canceled.body().closedAt)
+  })
+})
+
+test('lists only active operators eligible for a supervisor to reassign', async ({ client }) => {
+  await withTicketAccount(client, 'supervisor', async (supervisor, headers) => {
+    const [current, inactive, candidate] = await User.createMany(
+      ['Actual', 'Inactivo', 'Candidato'].map((name) => ({
+        fullName: name,
+        email: `${name.toLowerCase()}@eligible.requesto.test`,
+        password: supervisor.password,
+        role: 'agent' as const,
+        isActive: name !== 'Inactivo',
+      })),
+    )
+
+    try {
+      const ticket = await Ticket.create({
+        ...ticketData,
+        reporterId: supervisor.id,
+        assigneeId: current.id,
+        status: 'assigned',
+      })
+      const candidatesUrl = `/api/tickets/${ticket.id}/eligible-assignees`
+      const candidates = await client.get(candidatesUrl).header('Cookie', headers.Cookie)
+      candidates.assertStatus(200)
+      candidates.assertBody([{ id: candidate.id, fullName: candidate.fullName }])
+
+      ticket.status = 'in_progress'
+      await ticket.save()
+      const unavailable = await client.get(candidatesUrl).header('Cookie', headers.Cookie)
+      unavailable.assertStatus(200)
+      unavailable.assertBody([])
+    } finally {
+      await Ticket.query().where('reporterId', supervisor.id).delete()
+      await User.query().whereIn('id', [current.id, inactive.id, candidate.id]).delete()
+    }
   })
 })

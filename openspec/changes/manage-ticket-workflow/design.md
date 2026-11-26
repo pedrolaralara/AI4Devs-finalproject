@@ -11,7 +11,7 @@ El PRD define el flujo y PED-24 cerró las reglas de visibilidad, cancelación, 
 
 ## Asignación, historial y concurrencia
 
-- **Asignación.** Los supervisores asignan solo a cuentas activas con rol `agent`. PED-29 concretará el contrato del selector de operadores activos.
+- **Asignación.** Los supervisores asignan solo a cuentas activas con rol `agent`. El selector consulta `GET /api/tickets/:id/eligible-assignees` cuando la acción requiere asignado. La consulta comparte el filtro de operadores activos con el POST.
 - **Reasignación.** Cuando `Assigned` sigue en `Assigned` y cambia el asignado, se registra `assigned` con el valor anterior y el nuevo. Se reserva `status_changed` para cambios reales de estado.
 - **Mismo asignado (asumido).** Seleccionar al operador ya asignado devuelve `422` sin incrementar la revisión ni escribir historial.
 - **Concurrencia.** El detalle y el resultado del POST exponen `workflowRevision`, un entero que empieza en cero. El cliente envía esa revisión como `expectedRevision`. La escritura compara e incrementa la revisión en una sola sentencia. Una revisión anterior devuelve `409`, también al reasignar sin cambiar de estado.

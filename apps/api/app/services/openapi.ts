@@ -204,6 +204,10 @@ export async function generateOpenApi() {
   }
 
   const transitionRoutes = paths['/api/tickets/{id}/transitions']
+  const eligible = paths['/api/tickets/{id}/eligible-assignees'].get
+  eligible.security = [{ sessionCookie: [] }]
+  const candidates = eligible.responses['200'].content?.['application/json']
+  if (candidates) candidates.example = [{ id: '10', fullName: 'Operador de ejemplo' }]
   transitionRoutes.get.security = [{ sessionCookie: [] }]
   const options = transitionRoutes.get.responses['200'].content?.['application/json']
   if (options) options.example = [{ to: 'assigned', requiresAssignee: true }]

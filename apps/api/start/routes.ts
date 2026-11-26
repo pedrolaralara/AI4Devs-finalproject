@@ -18,6 +18,10 @@ router
 router.post('/api/tickets', [TicketsController, 'store'])
 router.get('/api/tickets/:id', [TicketsController, 'show'])
 router.get('/api/tickets/:id/transitions', [TicketTransitionsController, 'index'])
+router.get('/api/tickets/:id/eligible-assignees', [
+  TicketTransitionsController,
+  'eligibleAssignees',
+])
 router.post('/api/tickets/:id/transitions', [TicketTransitionsController, 'store'])
 
 router.get('/api/openapi.json', [ApiDocsController, 'spec'])

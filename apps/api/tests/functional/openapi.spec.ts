@@ -76,6 +76,10 @@ test('publishes workflow revisions, options and failure responses', async ({ ass
   response.assertStatus(200)
   const { paths, components } = response.body()
   const { get, post } = paths['/api/tickets/{id}/transitions']
+  const eligible = paths['/api/tickets/{id}/eligible-assignees'].get
+  assert.sameMembers(Object.keys(eligible.responses), ['200', '401', '403', '404'])
+  assert.deepEqual(eligible.security, [{ sessionCookie: [] }])
+
   const body = components.schemas.ticketTransitionValidator
 
   assert.sameMembers(Object.keys(get.responses), ['200', '401', '404'])
