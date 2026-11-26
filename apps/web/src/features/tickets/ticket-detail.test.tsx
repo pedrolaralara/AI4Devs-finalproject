@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { App } from '../../app'
 import type { TicketDetail } from './ticket-api'
@@ -36,13 +36,17 @@ const ticket: TicketDetail = {
   ],
 }
 
-function openDetail(...responses: Response[]) {
+function openDetailAs(role: 'requester' | 'agent' | 'supervisor', ...responses: Response[]) {
   window.history.replaceState(null, '', '/tickets/42')
-  const fetchApi = vi.fn().mockResolvedValueOnce(Response.json({ ...person, role: 'requester' }))
+  const fetchApi = vi.fn().mockResolvedValueOnce(Response.json({ ...person, role }))
   for (const response of responses) fetchApi.mockResolvedValueOnce(response)
   fetchApi.mockImplementation(async () => Response.json([]))
   vi.stubGlobal('fetch', fetchApi)
   return { fetchApi, ...render(<App />) }
+}
+
+function openDetail(...responses: Response[]) {
+  return openDetailAs('requester', ...responses)
 }
 
 afterEach(() => {
@@ -113,4 +117,90 @@ test('sends the current workflow revision and displays the updated ticket', asyn
     body: JSON.stringify({ to: 'canceled', expectedRevision: 0 }),
     signal: expect.any(AbortSignal),
   })
+})
+
+test('requires an eligible operator for supervisor assignment and shows the new history', async () => {
+  vi.spyOn(document, 'cookie', 'get').mockReturnValue('XSRF-TOKEN=e%3Aworkflow')
+  const operator = { id: '10', fullName: 'Operador de prueba' }
+  const { fetchApi } = openDetailAs(
+    'supervisor',
+    Response.json(ticket),
+    Response.json([{ to: 'assigned', requiresAssignee: true }]),
+    Response.json([operator]),
+    new Response(null, { status: 204 }),
+    Response.json({
+      ...ticket,
+      status: 'assigned',
+      assignee: operator,
+      workflowRevision: 1,
+      history: [
+        ...ticket.history,
+        {
+          id: '3',
+          eventType: 'assigned',
+          actor: person,
+          createdAt: timestamp,
+          field: 'assignee_id',
+          oldValue: null,
+          newValue: operator.id,
+        },
+      ],
+    }),
+    Response.json([{ to: 'in_progress', requiresAssignee: false }]),
+  )
+
+  const assign = await screen.findByRole('button', { name: 'Asignar' })
+  expect(assign).toHaveProperty('disabled', true)
+  const selector = screen.getByLabelText('Operador')
+  expect(within(selector).getByRole('option', { name: operator.fullName })).toBeTruthy()
+  fireEvent.change(selector, { target: { value: operator.id } })
+  fireEvent.click(assign)
+
+  expect(await screen.findByRole('button', { name: 'Iniciar trabajo' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Asignar' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Resolver' })).toBeNull()
+  expect(
+    within(screen.getByRole('region', { name: 'Historial' })).getByText('Asignación'),
+  ).toBeTruthy()
+  expect(fetchApi).toHaveBeenCalledWith(
+    '/api/tickets/42/transitions',
+    expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ to: 'assigned', expectedRevision: 0, assigneeId: operator.id }),
+    }),
+  )
+})
+
+test('does not show action controls or fetch operator data when no actions are offered', async () => {
+  const { fetchApi } = openDetailAs('agent', Response.json(ticket), Response.json([]))
+
+  await screen.findByRole('heading', { name: 'REQ-42 · Acceso a la aplicación' })
+  await waitFor(() => {
+    expect(fetchApi).toHaveBeenCalledTimes(3)
+    expect(screen.queryByRole('region', { name: 'Acciones del ticket' })).toBeNull()
+  })
+  expect(screen.queryByLabelText('Operador')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Asignarme' })).toBeNull()
+})
+
+test('reloads the ticket and actions after a 409 without repeating the write', async () => {
+  vi.spyOn(document, 'cookie', 'get').mockReturnValue('XSRF-TOKEN=e%3Aworkflow')
+  const { fetchApi } = openDetailAs(
+    'agent',
+    Response.json(ticket),
+    Response.json([{ to: 'assigned', requiresAssignee: false }]),
+    new Response(null, { status: 204 }),
+    new Response(null, { status: 409 }),
+    Response.json({ ...ticket, status: 'assigned', workflowRevision: 1, assignee: person }),
+    Response.json([{ to: 'in_progress', requiresAssignee: false }]),
+  )
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Asignarme' }))
+  expect(await screen.findByRole('button', { name: 'Iniciar trabajo' })).toBeTruthy()
+  expect(screen.getByRole('alert').textContent).toMatch(/El ticket cambió/)
+  expect(fetchApi.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1)
+  expect(fetchApi.mock.calls.filter(([url]) => url === '/api/tickets/42')).toHaveLength(2)
+  expect(fetchApi.mock.calls.filter(([url]) => url === '/api/tickets/42/transitions')).toHaveLength(
+    3,
+  )
 })

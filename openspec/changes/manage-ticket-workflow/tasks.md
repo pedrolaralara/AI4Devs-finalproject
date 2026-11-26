@@ -13,5 +13,5 @@
 
 - [x] 3.1 Exponer y verificar el contrato del selector de operadores elegibles (PED-91).
 - [x] 3.2 Integrar las acciones devueltas por la API y actualizar el detalle tras una transición (PED-92). Coordinar el cierre de la entrega final con PED-23.
-- [ ] 3.3 Verificar las acciones y la gestión de conflictos de revisión con Vitest (PED-93).
+- [x] 3.3 Verificar las acciones y la gestión de conflictos de revisión con Vitest (PED-93).
 - [ ] 3.4 Verificar en Playwright el recorrido de crear, asignar, iniciar y resolver, y documentar la trazabilidad (PED-30).
