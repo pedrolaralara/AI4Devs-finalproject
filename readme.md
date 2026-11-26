@@ -1270,7 +1270,7 @@ Como peticionario, operador o supervisor, quiero encontrar los tickets que puedo
 
 **Fuera de alcance.** El tablero Kanban, la edición desde la lista y las exportaciones.
 
-**Contexto técnico.** [Historia en Linear](https://linear.app/pedrolaralara/issue/PED-12), [OpenSpec](openspec/changes/list-visible-tickets/proposal.md) y `GET /api/tickets` en la sección 4.
+**Contexto técnico.** [Historia en Linear](https://linear.app/pedrolaralara/issue/PED-12), [especificación vigente](openspec/specs/ticket-list/spec.md), [cambio archivado](openspec/changes/archive/2026-11-26-list-visible-tickets/proposal.md) y `GET /api/tickets` en la sección 4.
 
 #### HU-05 · Kanban de tickets
 
