@@ -448,7 +448,7 @@ flowchart LR
 La CI también bloquea los hallazgos de Gitleaks en los commits introducidos y las vulnerabilidades altas o críticas del lockfile de npm.
 
 **Proceso de despliegue:**
-1. Merge a la rama principal → CI construye las imágenes de `web` y `api`.
+1. Desde la raíz se construyen las imágenes con `docker/web.Dockerfile` y `docker/api.Dockerfile`. La web sirve la SPA compilada con Nginx y reenvía `/api/` y `/docs` a la API. La imagen de la API arranca la compilación de AdonisJS con Node 24 y un usuario sin privilegios.
 2. En el servidor: se actualizan las imágenes y se ejecuta `docker compose up -d`.
 3. La API aplica las migraciones pendientes al arrancar.
 4. Configuración por **variables de entorno** (base de datos, `APP_KEY`, proveedor y clave del LLM), nunca en el repositorio.

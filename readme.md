@@ -432,7 +432,7 @@ flowchart LR
 
 **Proceso de despliegue previsto:**
 1. GitHub Actions ejecuta `npm ci`, `npm run check`, `npm run build` y las suites de Japa, Vitest y Playwright en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. Los jobs de pruebas reutilizan los archivos Compose documentados en la sección 1.4. Si falla Playwright, las trazas disponibles se pueden descargar durante siete días. Gitleaks bloquea si detecta secretos en los commits introducidos y `npm audit` bloquea por vulnerabilidades altas o críticas en el lockfile.
-2. Al integrar en la rama principal se construyen las imágenes Docker de `web` y `api`.
+2. Las imágenes Docker de `web` y `api` se construyen desde la raíz con `docker build -f docker/web.Dockerfile -t requesto-web .` y `docker build -f docker/api.Dockerfile -t requesto-api .`. Nginx sirve la SPA compilada y reenvía `/api/` y `/docs` a la API.
 3. En el servidor se actualizan las imágenes y se levanta el stack con `docker compose up -d`. La API ejecuta las migraciones pendientes al arrancar.
 4. La configuración (credenciales de la base de datos, clave de la aplicación, proveedor y clave del LLM) se inyecta mediante variables de entorno, nunca en el repositorio.
 
