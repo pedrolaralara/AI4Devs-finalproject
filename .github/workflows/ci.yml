@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, final-project-PLL]
+  push:
+    branches: [final-project-PLL]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Calidad y compilación
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Preparar Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Comprobar formato, lint y tipos
+        run: npm run check
+      - name: Compilar la API y la web
+        env:
+          NODE_ENV: production
+          HOST: 127.0.0.1
+          PORT: '3333'
+          APP_URL: http://127.0.0.1:3333
+          APP_KEY: requesto-ci-build-placeholder
+          LOG_LEVEL: error
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_USER: requesto_ci
+          DB_PASSWORD: requesto_ci
+          DB_DATABASE: requesto_ci
+        run: npm run build
