@@ -3,6 +3,7 @@ import type { TicketStatus } from '#models/ticket_types'
 import {
   type AvailableTransition,
   availableTransitions,
+  evaluateTransition,
   type WorkflowActor,
 } from '#services/ticket_workflow'
 
@@ -100,3 +101,18 @@ test('matches workflow availability for {status} and {relation}')
 
     assert.sameDeepMembers(availableTransitions(ticket, actor), expected[status][relation])
   })
+
+test('distinguishes a missing transition from a forbidden action', ({ assert }) => {
+  const ticket = {
+    status: 'open',
+    reporterId: roles.requesterReporter.id,
+    assigneeId: null,
+  } as const
+
+  assert.deepEqual(evaluateTransition(ticket, roles.supervisorReporter, 'solved'), {
+    kind: 'invalid',
+  })
+  assert.deepEqual(evaluateTransition(ticket, roles.requesterReporter, 'assigned'), {
+    kind: 'forbidden',
+  })
+})

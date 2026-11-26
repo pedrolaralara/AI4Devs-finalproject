@@ -302,3 +302,5 @@ El autor confirmó para HU-03 la consulta desde la URL o al recargar, la respues
 El autor confirmó que la asignación se limita a operadores activos, que la reasignación genera solo el evento de asignación si conserva el estado y que una revisión anterior devuelve 409. Codex incorporó la revisión al contrato de detalle y transiciones.
 
 **Pruebas unitarias del flujo (PED-87).** Codex convirtió la matriz aprobada del PRD en 42 casos de Japa, combinando los siete estados con seis relaciones del actor. El oráculo de pruebas se definió sin consultar la implementación. Codex movió el arranque de PostgreSQL a las suites de integración para ejecutar la suite unitaria sin base de datos. Con la máquina aún vacía, los 23 casos sin acciones pasaron y los 19 que esperan acciones fallaron como estaba previsto.
+
+**Máquina de estados (PED-88).** Codex implementó las reglas puras de HU-04 en una tabla de estados y comprobó que la consulta y la evaluación de transiciones usan las mismas reglas. La suite distingue una transición inexistente de una acción prohibida para el actor. La matriz esperada siguió derivándose del PRD.
