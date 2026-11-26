@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('creates a request and takes it to solved with a different account', async ({
+test('resolves a request as an operator and closes it as its reporter', async ({
   baseURL,
   browser,
   page,
@@ -65,9 +65,28 @@ test('creates a request and takes it to solved with a different account', async 
     await expect(history.getByText('Asignación', { exact: true })).toBeVisible()
     await expect(history.getByText('status: in_progress → solved')).toBeVisible()
     await expect(history.getByText(/operador1/).last()).toBeVisible()
+    await expect(operator.getByRole('region', { name: 'Acciones del ticket' })).toHaveCount(0)
+    await expect(operator.getByRole('button', { name: 'Cerrar ticket' })).toHaveCount(0)
 
     await page.reload()
     await expect(page.getByRole('definition').filter({ hasText: /^Resuelto$/ })).toBeVisible()
+    await page.getByRole('button', { name: 'Cerrar ticket' }).click()
+    await expect(page.getByRole('definition').filter({ hasText: /^Cerrado$/ })).toBeVisible()
+
+    await page.reload()
+    await expect(page.getByRole('definition').filter({ hasText: /^Cerrado$/ })).toBeVisible()
+    await expect(
+      page
+        .locator('dt')
+        .filter({ hasText: /^Finalizado$/ })
+        .locator('+ dd time'),
+    ).toBeVisible()
+    const reporterHistory = page.getByRole('region', { name: 'Historial' })
+    const closeEvent = reporterHistory.getByRole('listitem').filter({
+      hasText: 'status: solved → closed',
+    })
+    await expect(closeEvent).toContainText('usuario1')
+    await expect(page.getByRole('region', { name: 'Acciones del ticket' })).toHaveCount(0)
   } finally {
     await operatorContext.close()
   }

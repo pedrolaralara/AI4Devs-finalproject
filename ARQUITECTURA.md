@@ -484,7 +484,7 @@ Logs estructurados en JSON (logger de AdonisJS) con id de petición, usuario y t
 | Unitario | Japa | Máquina de estados (todas las combinaciones estado × destino × rol) y cálculo de la prioridad. |
 | Integración / funcional | Japa + PostgreSQL de test | Endpoints de la API, permisos y códigos de error; restricciones de la base de datos. |
 | Componentes | Vitest + Testing Library + MSW | Formularios, filtros y comportamiento del Kanban ante errores. |
-| End-to-end | Playwright | Chromium verifica la sesión y el recorrido de creación, autoasignación, inicio y resolución con cuentas separadas. La web, la API y PostgreSQL temporal se ejecutan en Compose. El cierre del ticket por su reportero se verifica en PED-23. |
+| End-to-end | Playwright | Chromium verifica la sesión y el recorrido de creación, autoasignación, inicio, resolución y cierre por el reportero con cuentas separadas. La web, la API y PostgreSQL temporal se ejecutan en Compose. |
 
 ### 11.6 Calidad y documentación
 

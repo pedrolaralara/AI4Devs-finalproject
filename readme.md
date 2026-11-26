@@ -440,7 +440,7 @@ Estrategia prevista (se completará con ejemplos reales en la entrega final):
 - **Unitarios (Japa):** máquina de estados (transiciones válidas e inválidas por rol) y cálculo de la prioridad.
 - **Integración/funcionales (Japa + PostgreSQL de test):** endpoints de la API, incluidos los permisos (por ejemplo, que un usuario reciba `403` al intentar asignar un ticket).
 - **Componentes (Vitest + Testing Library):** formulario de creación y acciones visibles según el rol.
-- **End-to-end (Playwright):** HU-00 cubre el inicio de sesión, la recarga y el cierre de sesión. El E2E de la entrega 2 comprueba que un peticionario crea un ticket y un operador se lo asigna, empieza a trabajar y lo resuelve. El cierre del ticket por su reportero se verifica en PED-23.
+- **End-to-end (Playwright):** HU-00 cubre el inicio de sesión, la recarga y el cierre de sesión. Un segundo recorrido comprueba que un peticionario crea un ticket, un operador se lo asigna y lo resuelve, y el reportero lo cierra. La prueba comprueba la fecha de cierre y el historial al recargar (PED-23).
 
 ---
 
