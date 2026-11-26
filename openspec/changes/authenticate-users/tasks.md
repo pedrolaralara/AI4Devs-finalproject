@@ -12,6 +12,7 @@
 ## 3. Web (PED-68)
 
 - [x] 3.1 Implementar y probar con Vitest el formulario, la restauración de sesión, los errores y la salida.
+- [x] 3.2 Verificar desde una copia limpia que la SPA se conecta a la API y restaura o termina el acceso con una cuenta de demostración. Ejecutar las suites de Japa y Vitest (PED-74).
 
 ## 4. Verificación (PED-69)
 
