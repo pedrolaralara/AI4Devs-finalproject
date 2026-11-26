@@ -1,5 +1,5 @@
-import app from '@adonisjs/core/services/app'
 import { defineConfig, stores } from '@adonisjs/session'
+import { secureCookies } from '#config/cookie_transport'
 
 const sessionConfig = defineConfig({
   /**
@@ -40,9 +40,9 @@ const sessionConfig = defineConfig({
     httpOnly: true,
 
     /**
-     * Send cookies only over HTTPS in production.
+     * Require HTTPS in production except for the HTTP demo on loopback.
      */
-    secure: app.inProduction,
+    secure: secureCookies,
 
     /**
      * Cross-site policy for cookie sending.

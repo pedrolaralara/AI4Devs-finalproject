@@ -1,0 +1,18 @@
+**
+!package.json
+!package-lock.json
+!apps/
+!apps/api/
+!apps/api/**
+!apps/web/
+!apps/web/**
+!docker/
+!docker/nginx/
+!docker/nginx/default.conf
+**/node_modules
+**/build
+**/dist
+**/.adonisjs
+**/.env
+**/.env.*
+**/* 2.*

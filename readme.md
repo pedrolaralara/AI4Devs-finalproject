@@ -419,7 +419,8 @@ Requesto se despliega **on-premise** con Docker Compose, en un único servidor d
 
 ```mermaid
 flowchart LR
-    User["Usuarios<br/>(red interna)"] -- HTTPS --> Nginx
+    User["Usuarios<br/>(red interna)"] -- HTTPS --> TLS["Proxy TLS del servidor"]
+    TLS -- "HTTP · 127.0.0.1:8080" --> Nginx
     subgraph Host["Servidor on-premise · Docker Compose"]
         Nginx["web<br/>Nginx + build de la SPA"]
         Api["api<br/>AdonisJS (Node.js)"]
@@ -432,11 +433,46 @@ flowchart LR
 
 **Proceso de despliegue previsto:**
 1. GitHub Actions ejecuta `npm ci`, `npm run check`, `npm run build` y las suites de Japa, Vitest y Playwright en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. Los jobs de pruebas reutilizan los archivos Compose documentados en la sección 1.4. Si falla Playwright, las trazas disponibles se pueden descargar durante siete días. Gitleaks bloquea si detecta secretos en los commits introducidos y `npm audit` bloquea por vulnerabilidades altas o críticas en el lockfile.
-2. Al integrar en la rama principal se construyen las imágenes Docker de `web` y `api`.
-3. En el servidor se actualizan las imágenes y se levanta el stack con `docker compose up -d`. La API ejecuta las migraciones pendientes al arrancar.
-4. La configuración (credenciales de la base de datos, clave de la aplicación, proveedor y clave del LLM) se inyecta mediante variables de entorno, nunca en el repositorio.
+2. Las imágenes Docker de `web` y `api` se construyen desde la raíz con `docker build -f docker/web.Dockerfile -t requesto-web .` y `docker build -f docker/api.Dockerfile -t requesto-api .`. Nginx sirve la SPA compilada y reenvía `/api/` y `/docs` a la API.
+3. Copia `docker/deploy.env.example` a `.env.deploy` y configura la URL HTTPS y dos valores distintos para la clave de la aplicación y la contraseña de PostgreSQL. Puedes generar cada valor con `openssl rand -hex 32`.
+4. Ejecuta `docker compose --env-file .env.deploy -f compose.deploy.yml up --build -d --wait`. La API aplica las migraciones pendientes y PostgreSQL guarda sus datos en un volumen persistente.
+5. Configura el proxy TLS del servidor para reenviar la URL HTTPS a `127.0.0.1:8080` o al puerto local que hayas elegido. Compose publica solo la web en la interfaz local. Puedes verificar el conjunto con `curl --fail http://127.0.0.1:8080/api/health`.
 
 La revisión local se realiza con `compose.dev.yml` y las [pruebas del flujo principal](#pruebas-del-flujo-principal).
+
+#### Prueba de humo del despliegue
+
+Para comprobar las imágenes con datos sintéticos, usa una instancia aislada con un nombre de proyecto Compose propio y configura `REQUESTO_APP_URL=http://localhost:8080` en `.env.demo`, que puedes crear a partir de `docker/deploy.env.example`. Si ese puerto ya está en uso, ajusta también `REQUESTO_WEB_PORT`.
+
+```bash
+docker compose --env-file .env.demo -p requesto-demo -f compose.deploy.yml up --build -d --wait
+docker compose --env-file .env.demo -p requesto-demo -f compose.deploy.yml exec -T -e NODE_ENV=development api node ace db:seed --files database/seeders/development_seeder.js
+curl --fail http://localhost:8080/api/health
+```
+
+Usa valores exclusivos para la demo y una base nueva. El cambio de `NODE_ENV` se aplica solo al comando de carga de datos sintéticos. En Chromium, abre `http://localhost:8080` y sigue el [flujo principal](#pruebas-del-flujo-principal) con las [cuentas de demostración](#datos-de-desarrollo). Usa la URL de despliegue en los pasos del navegador.
+
+La prueba inicial de despliegue se ejecutó sobre el commit `0b5cb57`. Pasaron los seis E2E en Chromium, incluido el cierre del ticket por su peticionario. La recuperación se verificó en otro proyecto Compose con un volumen nuevo. El ticket de prueba conservó su estado cerrado y `/api/health` respondió correctamente en la instancia restaurada. Tras ajustar el uso de cookies en la demo HTTP local, también se verificó el inicio de sesión en WebKit.
+
+#### Recuperación de una versión y sus datos
+
+Antes de actualizar, registra el commit activo con `git rev-parse HEAD` y guarda una copia de PostgreSQL en almacenamiento protegido.
+
+```bash
+docker compose --env-file .env.deploy -f compose.deploy.yml exec -T db \
+  sh -ec 'pg_dump --format=custom --username="$POSTGRES_USER" "$POSTGRES_DB"' > /ruta/segura/requesto-backup.dump
+```
+
+Para volver a una versión anterior, usa una copia de trabajo del commit registrado y reconstruye sus imágenes. Si hay que recuperar los datos, inicia únicamente `db` en un proyecto Compose separado, con un volumen nuevo y un archivo `.env.restore` configurado para esa instancia. Restaura la copia antes de arrancar la API:
+
+```bash
+docker compose --env-file .env.restore -p requesto-restore -f compose.deploy.yml up -d --wait db
+docker compose --env-file .env.restore -p requesto-restore -f compose.deploy.yml exec -T db \
+  sh -ec 'pg_restore --exit-on-error --single-transaction --no-owner --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' < /ruta/segura/requesto-backup.dump
+docker compose --env-file .env.restore -p requesto-restore -f compose.deploy.yml up --build -d --wait
+```
+
+Configura otro `REQUESTO_WEB_PORT` para validar la recuperación en paralelo. Comprueba `/api/health` y los datos restaurados antes de apuntar el proxy a esa instancia. Conserva la copia y el volumen anterior hasta verificar el servicio.
 
 Para revisar el resultado de la CI, abre **Checks** en la PR o busca el commit de `final-project-PLL` en **Actions**. Los comandos de la sección 1.4 reproducen las comprobaciones de código y las pruebas. Ejecuta `npm audit --package-lock-only --audit-level=high` desde la raíz para reproducir la auditoría de dependencias.
 
@@ -445,7 +481,7 @@ Los cinco jobs pasaron tanto en el [push a la rama final](https://github.com/ped
 ### **2.5. Seguridad**
 
 Prácticas previstas:
-- **Autenticación por sesión** con cookies `HttpOnly`, `SameSite=Lax` y `Secure` en producción. PostgreSQL almacena las sesiones cifradas y el cierre revoca el acceso en el servidor. Las contraseñas se comprueban con scrypt.
+- **Autenticación por sesión** con cookies `HttpOnly`, `SameSite=Lax` y `Secure` en producción. La demo con URL HTTP de loopback permite cookies locales sin `Secure`. PostgreSQL almacena las sesiones cifradas y el cierre revoca el acceso en el servidor. Las contraseñas se comprueban con scrypt.
 - **Protección CSRF** en las peticiones que modifican datos (shield de AdonisJS).
 - **Autorización en el servidor** con políticas por rol: el frontend oculta acciones, pero es el backend quien las valida. Por ejemplo, un usuario no puede pasar un ticket a *In progress* aunque llame a la API directamente.
 - **Validación de entradas** con VineJS en todos los endpoints.

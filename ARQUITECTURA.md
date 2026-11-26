@@ -426,7 +426,8 @@ Convenciones:
 
 ```mermaid
 flowchart LR
-    User["Usuarios<br/>(red interna)"] -- HTTPS --> Nginx
+    User["Usuarios<br/>(red interna)"] -- HTTPS --> TLS["Proxy TLS del servidor"]
+    TLS -- "HTTP · 127.0.0.1:8080" --> Nginx
     subgraph Host["Servidor on-premise · Docker Compose"]
         Nginx["web<br/>Nginx + build de la SPA"]
         Api["api<br/>AdonisJS (Node.js)"]
@@ -435,31 +436,30 @@ flowchart LR
         Api --> Pg
     end
     Api -. "opcional" .-> LLM["Proveedor LLM autoalojado en producción"]
-    CI["GitHub Actions"] -. "imágenes Docker" .-> Host
 ```
 
 | Entorno | Cómo se ejecuta |
 |---------|-----------------|
 | **Local** | `docker compose -f compose.dev.yml up api web` arranca también PostgreSQL con volumen persistente. La web consulta `/api/health` a través de Vite y AdonisJS comprueba PostgreSQL. |
 | **CI** | GitHub Actions ejecuta comprobaciones y compilación con Node 24, Japa y Vitest con PostgreSQL temporal y los E2E con Chromium. Se dispara en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. Si falla Playwright, las trazas disponibles se guardan como artefacto durante siete días. |
-| **On-premise** | Docker Compose con `web`, `api` y `db`. Las migraciones se ejecutan al arrancar la API. |
-| **Demo (entrega final)** | El mismo `docker-compose.yml` en un servidor con URL pública. |
+| **On-premise** | `compose.deploy.yml` con `web`, `api` y `db`. Publica la web en loopback para el proxy TLS del servidor y usa un volumen persistente de PostgreSQL. |
+| **Demo (entrega final)** | Revisión local con datos sintéticos y los pasos del README. |
 
 La CI también bloquea los hallazgos de Gitleaks en los commits introducidos y las vulnerabilidades altas o críticas del lockfile de npm.
 
 **Proceso de despliegue:**
-1. Merge a la rama principal → CI construye las imágenes de `web` y `api`.
-2. En el servidor: se actualizan las imágenes y se ejecuta `docker compose up -d`.
-3. La API aplica las migraciones pendientes al arrancar.
-4. Configuración por **variables de entorno** (base de datos, `APP_KEY`, proveedor y clave del LLM), nunca en el repositorio.
+1. Desde la raíz se construyen las imágenes con `docker/web.Dockerfile` y `docker/api.Dockerfile`. La web sirve la SPA compilada con Nginx y reenvía `/api/` y `/docs` a la API. La imagen de la API arranca la compilación de AdonisJS con Node 24 y un usuario sin privilegios.
+2. A partir de `docker/deploy.env.example`, configura la URL HTTPS y los secretos en el archivo local `.env.deploy`. Levanta los servicios con `docker compose --env-file .env.deploy -f compose.deploy.yml up --build -d --wait`.
+3. PostgreSQL debe estar listo antes del arranque de la API. La API aplica las migraciones pendientes. Nginx comprueba la salud a través de `/api/health`, que a su vez comprueba PostgreSQL.
+4. El proxy TLS del servidor reenvía la URL pública de la aplicación al puerto local de la web. API y PostgreSQL solo reciben conexiones por la red de Compose.
 
-**Copias de seguridad (asumido):** volcado periódico de PostgreSQL (`pg_dump`) a un almacenamiento de la empresa. Se concretará con el despliegue.
+**Copias de seguridad y recuperación.** Antes de actualizar, se registra el commit y se guarda un volcado en formato personalizado de PostgreSQL. Para recuperar la versión, se reconstruyen sus imágenes y se restaura con `pg_restore` en un proyecto Compose con volumen nuevo. Se valida la salud y el contenido antes de cambiar el destino del proxy. Los comandos están en el [README](readme.md#recuperación-de-una-versión-y-sus-datos).
 
 ## 11. Conceptos transversales
 
 ### 11.1 Seguridad
 
-- **Autenticación:** sesión con cookie `HttpOnly`, `SameSite=Lax` y `Secure` en producción. AdonisJS guarda la sesión cifrada en la tabla técnica `sessions` de PostgreSQL y comprueba contraseñas con scrypt. El cierre revoca el acceso en el servidor. Docker Compose de desarrollo aplica las migraciones antes de arrancar la API.
+- **Autenticación:** sesión con cookie `HttpOnly`, `SameSite=Lax` y `Secure` en producción. La demo con URL HTTP de loopback permite cookies locales sin `Secure`. AdonisJS guarda la sesión cifrada en la tabla técnica `sessions` de PostgreSQL y comprueba contraseñas con scrypt. El cierre revoca el acceso en el servidor. Docker Compose de desarrollo aplica las migraciones antes de arrancar la API.
 - **CSRF:** shield de AdonisJS; la SPA envía `X-XSRF-TOKEN` en las peticiones que modifican datos.
 - **Autorización en el servidor:** políticas Bouncer y máquina de estados. La interfaz oculta acciones, pero la API las valida siempre.
 - **Validación de entradas** con VineJS en todos los endpoints; `additionalProperties: false` en los cuerpos.
