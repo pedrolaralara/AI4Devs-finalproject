@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { getTicket, type TicketDetail } from './ticket-api'
+import { TicketWorkflow } from './ticket-workflow'
 
 const statuses: Record<TicketDetail['status'], string> = {
   open: 'Abierto',
@@ -122,7 +123,9 @@ type LoadState =
 
 function TicketQuery({ id, onExpired }: { id: string; onExpired: () => void }) {
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
+  const [conflict, setConflict] = useState(false)
   const loading = state.kind === 'loading'
+  const markMissing = useCallback(() => setState({ kind: 'missing' }), [])
 
   useEffect(() => {
     if (!loading) return
@@ -151,7 +154,28 @@ function TicketQuery({ id, onExpired }: { id: string; onExpired: () => void }) {
           </button>
         </>
       )}
-      {state.kind === 'found' && <TicketContent ticket={state.ticket} />}
+      {state.kind === 'found' && (
+        <>
+          <TicketContent ticket={state.ticket} />
+          {conflict && (
+            <p role="alert">El ticket cambió. Se han actualizado el detalle y las acciones.</p>
+          )}
+          <TicketWorkflow
+            key={state.ticket.workflowRevision}
+            ticket={state.ticket}
+            onExpired={onExpired}
+            onMissing={markMissing}
+            onConflict={() => {
+              setConflict(true)
+              setState({ kind: 'loading' })
+            }}
+            onUpdated={(ticket) => {
+              setConflict(false)
+              setState({ kind: 'found', ticket })
+            }}
+          />
+        </>
+      )}
       <p>
         <Link to="/">Volver al inicio</Link>
       </p>

@@ -628,6 +628,8 @@ El flujo de HU-04 publica `GET` y `POST /api/tickets/:id/transitions`. El detall
 
 Para asignar o reasignar, un supervisor consulta `GET /api/tickets/:id/eligible-assignees`. Recibe los identificadores y nombres de operadores activos, excluido el asignado actual. El contrato se publica en el OpenAPI generado.
 
+Desde el detalle, la sección **Acciones del ticket** muestra las transiciones autorizadas. El supervisor elige un operador cuando la acción lo requiere. Tras un conflicto de revisión, la web recarga el detalle y permite decidir de nuevo.
+
 El YAML de esta sección conserva el **contrato de diseño de tickets** de la entrega 1.
 
 **Convenciones comunes:**

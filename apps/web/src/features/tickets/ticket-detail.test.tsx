@@ -9,6 +9,7 @@ const ticket: TicketDetail = {
   id: '42',
   key: 'REQ-42',
   type: 'request',
+  workflowRevision: 0,
   title: 'Acceso a la aplicación',
   description: 'Necesito acceso.',
   status: 'open',
@@ -39,6 +40,7 @@ function openDetail(...responses: Response[]) {
   window.history.replaceState(null, '', '/tickets/42')
   const fetchApi = vi.fn().mockResolvedValueOnce(Response.json({ ...person, role: 'requester' }))
   for (const response of responses) fetchApi.mockResolvedValueOnce(response)
+  fetchApi.mockImplementation(async () => Response.json([]))
   vi.stubGlobal('fetch', fetchApi)
   return { fetchApi, ...render(<App />) }
 }
@@ -46,6 +48,7 @@ function openDetail(...responses: Response[]) {
 afterEach(() => {
   cleanup()
   window.history.replaceState(null, '', '/')
+  vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
@@ -91,4 +94,23 @@ test('asks the user to sign in when the API reports an expired session', async (
   expect(screen.getByRole('alert').textContent).toBe(
     'La sesión ha caducado. Vuelve a iniciar sesión.',
   )
+})
+
+test('sends the current workflow revision and displays the updated ticket', async () => {
+  vi.spyOn(document, 'cookie', 'get').mockReturnValue('XSRF-TOKEN=e%3Aworkflow')
+  const { fetchApi } = openDetail(
+    Response.json(ticket),
+    Response.json([{ to: 'canceled', requiresAssignee: false }]),
+    new Response(null, { status: 204 }),
+    Response.json({ ...ticket, status: 'canceled', workflowRevision: 1 }),
+  )
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Cancelar ticket' }))
+  expect(await screen.findByText('Cancelado', { exact: true })).toBeTruthy()
+  expect(fetchApi).toHaveBeenCalledWith('/api/tickets/42/transitions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': 'e:workflow' },
+    body: JSON.stringify({ to: 'canceled', expectedRevision: 0 }),
+    signal: expect.any(AbortSignal),
+  })
 })

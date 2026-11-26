@@ -58,8 +58,10 @@ test('shows a priority preview and opens the saved ticket using the API result',
       updatedAt: '2026-11-26T08:00:00Z',
       comments: [],
       history: [],
+      workflowRevision: 0,
     }),
   )
+  fetchApi.mockResolvedValueOnce(Response.json([]))
   render(<App />)
   await fillTicketForm()
 

@@ -56,6 +56,7 @@ export async function createTicket(input: TicketInput, signal: AbortSignal): Pro
 type Person = { id: string; fullName: string }
 
 export type TicketDetail = Omit<CreatedTicket, 'status'> & {
+  workflowRevision: number
   type: 'request'
   status: 'open' | 'assigned' | 'in_progress' | 'pending_user' | 'solved' | 'closed' | 'canceled'
   reporter: Person
