@@ -19,8 +19,8 @@ El servidor comprueba que la cuenta sigue activa y obtiene su rol de PostgreSQL.
 
 ### Salida
 
-El guard finaliza la sesión en el servidor. La SPA descarta el perfil local tras recibir la confirmación del cierre.
+El guard finaliza la sesión en el servidor. AdonisJS guarda las sesiones cifradas en PostgreSQL. La migración crea la tabla técnica `sessions` y Compose de desarrollo la aplica antes de levantar la API. La SPA descarta el perfil local tras recibir la confirmación del cierre.
 
 ## Risks / Trade-offs
 
-- La configuración actual almacena la sesión en cookies cifradas. PED-67 debe probar la consulta del perfil con la cookie anterior al cierre. Si el almacén actual permite reutilizarla, se revisará el cambio de almacenamiento antes de implementarlo.
+- Las pruebas HTTP reproducen la cookie anterior al cierre para comprobar que el servidor ya no concede acceso.

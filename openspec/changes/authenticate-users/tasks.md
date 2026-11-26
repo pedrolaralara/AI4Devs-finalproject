@@ -6,7 +6,7 @@
 ## 2. API (PED-67)
 
 - [x] 2.1 Consultar en Context7 la documentación de AdonisJS 7. Empezar con una prueba Japa roja para el inicio de sesión.
-- [ ] 2.2 Implementar y probar el inicio, la consulta y el cierre de sesión, la cuenta inactiva y CSRF.
+- [x] 2.2 Implementar y probar el inicio, la consulta y el cierre de sesión, la cuenta inactiva y CSRF.
 - [ ] 2.3 Verificar la invalidación en el servidor y documentar el contrato de los endpoints.
 
 ## 3. Web (PED-68)

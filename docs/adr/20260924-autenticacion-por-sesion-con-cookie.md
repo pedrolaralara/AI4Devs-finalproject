@@ -25,6 +25,8 @@ Se elige **el guard de sesión con cookie `HttpOnly`, `Secure` y `SameSite`**, p
 * AdonisJS aporta de serie la protección CSRF (shield) para este modo.
 * Cerrar sesión o dar de baja a un usuario invalida su acceso de inmediato en el servidor.
 
+PED-71 concreta el almacenamiento. La cookie identifica una sesión guardada en PostgreSQL mediante el almacén de base de datos de AdonisJS, con cifrado habilitado. PostgreSQL ya forma parte del despliegue y permite revocar la sesión desde el servidor. Cada consulta de perfil comprueba que la cuenta siga activa.
+
 ## Consecuencias
 
 * Las peticiones que modifican datos deben incluir el token CSRF.

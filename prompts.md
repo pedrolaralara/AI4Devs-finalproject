@@ -262,3 +262,7 @@ El autor pidió separar la historia, los escenarios funcionales, el contrato HTT
 El autor aprobó el recorrido y los supuestos del contrato al pedir el commit de PED-66.
 
 **Prueba roja de autenticación (PED-70).** Codex escribió en Japa el primer caso de CA-1 con una cuenta activa en PostgreSQL aislado. La ejecución devolvió el `404` esperado frente al `200` del contrato. Las otras 18 pruebas de Japa y las dos de Vitest pasaron. Context7 confirmó las APIs del guard de sesión de AdonisJS 7, Shield y el almacén de sesiones en PostgreSQL. La siguiente subtarea incorporará el intercambio CSRF al caso y verificará la revocación con la cookie anterior al cierre.
+
+**Contrato de autenticación (PED-71).** Codex implementó el guard de AdonisJS 7 con sesiones cifradas en PostgreSQL y un error JSON para el rechazo de CSRF. En la primera ejecución, el adaptador de sesión de Japa reemplazaba la cookie que enviaba la prueba y limpiaba la sesión al terminar cada petición. Se retiró el adaptador, que no usaban las demás pruebas, y Japa verificó el intercambio de cookies reales. La prueba de cierre reutilizó la cookie de sesión anterior y recibió `401`.
+
+Pasaron Biome, TypeScript, las 23 pruebas de Japa y las dos de Vitest. La instalación de verificación en la copia de iCloud encontró un directorio de caché de Vitest duplicado. Codex repitió el arranque en una copia temporal fuera de iCloud y comprobó que la API migró una base vacía y respondió `200` en salud y `204` al solicitar la cookie CSRF.

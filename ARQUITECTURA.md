@@ -446,7 +446,7 @@ flowchart LR
 
 ### 11.1 Seguridad
 
-- **Autenticación:** sesión con cookie `HttpOnly`, `Secure` y `SameSite`; contraseñas con hash (scrypt/argon2 de AdonisJS).
+- **Autenticación:** sesión con cookie `HttpOnly`, `SameSite=Lax` y `Secure` en producción. AdonisJS guarda la sesión cifrada en la tabla técnica `sessions` de PostgreSQL y comprueba contraseñas con scrypt. El cierre revoca el acceso en el servidor. Docker Compose de desarrollo aplica las migraciones antes de arrancar la API.
 - **CSRF:** shield de AdonisJS; la SPA envía `X-XSRF-TOKEN` en las peticiones que modifican datos.
 - **Autorización en el servidor:** políticas Bouncer y máquina de estados. La interfaz oculta acciones, pero la API las valida siempre.
 - **Validación de entradas** con VineJS en todos los endpoints; `additionalProperties: false` en los cuerpos.

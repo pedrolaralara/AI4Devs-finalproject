@@ -13,6 +13,13 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    if (error instanceof Error && 'code' in error && error.code === 'E_BAD_CSRF_TOKEN') {
+      return ctx.response.forbidden({
+        code: 'INVALID_CSRF_TOKEN',
+        message: 'El token de seguridad no es válido o ha caducado.',
+      })
+    }
+
     return super.handle(error, ctx)
   }
 

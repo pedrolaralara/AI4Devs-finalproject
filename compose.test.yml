@@ -28,7 +28,6 @@ services:
       APP_URL: http://127.0.0.1:3333
       APP_KEY: requesto-test-key-only-for-local-tests
       LOG_LEVEL: error
-      SESSION_DRIVER: cookie
       DB_HOST: db-test
       DB_PORT: 5432
       DB_USER: requesto_test

@@ -331,7 +331,7 @@ sequenceDiagram
 | **Frontend (SPA)** | React 19, Vite, TypeScript, React Router, TanStack Query, dnd-kit | Interfaz de usuario: login, lista con filtros, Kanban con arrastrar y soltar, detalle del ticket con comentarios e historial, formulario de creación y chat con el agente de IA. Muestra solo las acciones permitidas para el rol. |
 | **API REST** | AdonisJS 7, TypeScript | Expone los endpoints `/api/*`. Controllers finos que validan la entrada y delegan en los servicios. |
 | **Validación** | VineJS (incluido en AdonisJS) | Valida los cuerpos de las peticiones (p. ej. urgencia e impacto entre 1 y 5). |
-| **Autenticación** | `@adonisjs/auth` con guard de sesión | Login con email y contraseña; sesión en cookie `HttpOnly`. |
+| **Autenticación** | `@adonisjs/auth` con guard de sesión | Login con email y contraseña. La cookie `HttpOnly` identifica una sesión almacenada en PostgreSQL. |
 | **Autorización** | `@adonisjs/bouncer` | Políticas por rol: quién puede ver, comentar, asignar o cambiar de estado un ticket. |
 | **Servicios de dominio** | TypeScript | Reglas de negocio: máquina de estados del ticket, cálculo de la prioridad, registro del historial. |
 | **ORM** | Lucid (incluido en AdonisJS) | Modelos, relaciones, migraciones y seeders sobre PostgreSQL. |
@@ -414,7 +414,7 @@ Para la demo de la entrega final, el mismo `docker-compose.yml` se desplegará e
 ### **2.5. Seguridad**
 
 Prácticas previstas:
-- **Autenticación por sesión** con cookies `HttpOnly`, `Secure` y `SameSite`, y contraseñas con hash (scrypt/argon2, proporcionado por AdonisJS).
+- **Autenticación por sesión** con cookies `HttpOnly`, `SameSite=Lax` y `Secure` en producción. PostgreSQL almacena las sesiones cifradas y el cierre revoca el acceso en el servidor. Las contraseñas se comprueban con scrypt.
 - **Protección CSRF** en las peticiones que modifican datos (shield de AdonisJS).
 - **Autorización en el servidor** con políticas por rol: el frontend oculta acciones, pero es el backend quien las valida. Por ejemplo, un usuario no puede pasar un ticket a *In progress* aunque llame a la API directamente.
 - **Validación de entradas** con VineJS en todos los endpoints.
@@ -583,7 +583,7 @@ Ejemplo: cuando un operador pasa el ticket 42 de `assigned` a `in_progress`, se 
 - **Una tabla de usuarios con rol**, en lugar de una tabla por tipo de persona: los tres roles comparten login y datos, y solo cambian los permisos.
 - **Sin borrado físico de tickets.** Un ticket que no procede se cancela (`canceled`), así se conserva la trazabilidad. Los `ON DELETE CASCADE` de comentarios e historial solo existen para tareas de mantenimiento.
 - **Historial como tabla de eventos genérica** (`field`, `old_value`, `new_value`) en lugar de una columna por campo: con pocos campos fijos, es simple y sirve igual para el agente de IA ("¿cuánto tardó en resolverse?").
-- **Sesiones:** se guardan en cookie firmada o en el almacén de sesiones de AdonisJS, fuera de este modelo.
+- **Sesiones:** AdonisJS usa la tabla técnica `sessions` de PostgreSQL. Contiene el identificador, datos cifrados, una etiqueta de usuario opcional y la fecha de caducidad. La API aplica su migración antes de arrancar en Docker Compose de desarrollo.
 
 #### Datos de desarrollo
 

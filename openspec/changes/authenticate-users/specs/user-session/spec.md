@@ -44,12 +44,12 @@ El sistema SHALL terminar el acceso asociado a la sesión actual cuando la perso
 
 ### Requirement: Contrato HTTP de autenticación
 
-La API SHALL exponer las siguientes operaciones bajo `/api/auth`. El perfil de sesión contiene `id`, `fullName` y `role`. Los valores de `role` son `requester`, `agent` y `supervisor`.
+La API SHALL exponer las siguientes operaciones bajo `/api/auth`. El perfil de sesión contiene `id` como cadena decimal para preservar la precisión de `bigint`, `fullName` y `role`. Los valores de `role` son `requester`, `agent` y `supervisor`.
 
 #### Scenario: CA-1 y CA-3 · Obtener el token CSRF
 
 - **WHEN** el cliente solicita `GET /api/auth/csrf`
-- **THEN** puede obtener el token de la cookie `XSRF-TOKEN` y enviarlo en `X-XSRF-TOKEN` al iniciar o cerrar sesión
+- **THEN** la API devuelve `204` y el cliente puede obtener el token de la cookie `XSRF-TOKEN` y enviarlo en `X-XSRF-TOKEN` al iniciar o cerrar sesión
 
 #### Scenario: CA-1 · Autenticar la cuenta
 
@@ -84,4 +84,4 @@ La API SHALL exponer las siguientes operaciones bajo `/api/auth`. El perfil de s
 
 - **GIVEN** un token CSRF ausente o inválido
 - **WHEN** el cliente intenta iniciar o cerrar sesión
-- **THEN** la API rechaza la operación y conserva el estado previo de la sesión
+- **THEN** la API devuelve `403` con `INVALID_CSRF_TOKEN` y conserva el estado previo de la sesión
