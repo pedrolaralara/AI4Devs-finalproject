@@ -199,7 +199,7 @@ docker compose -f compose.test.yml up --abort-on-container-exit --exit-code-from
 
 Este comando instala las dependencias desde el lockfile y propaga el código de salida de las pruebas. La suite de Japa usa `requesto_test`, una instancia de PostgreSQL con almacenamiento temporal separada de desarrollo. Vitest prueba la web con Testing Library y simula la respuesta HTTP. Puedes retirar los contenedores detenidos con `docker compose -f compose.test.yml down`.
 
-Para ejecutar los E2E de autenticación, creación y consulta de tickets con Chromium, usa un proyecto Compose separado:
+Para ejecutar los E2E con Chromium, usa un proyecto Compose separado:
 
 ```bash
 docker compose -p requesto-e2e -f compose.dev.yml -f compose.e2e.yml run --rm -T node npm ci
@@ -208,6 +208,20 @@ docker compose -p requesto-e2e -f compose.dev.yml -f compose.e2e.yml down --volu
 ```
 
 Compose inicia la web y la API, migra PostgreSQL temporal y carga cuentas sintéticas. Si la prueba falla, Playwright deja la traza en `test-results/e2e/`.
+
+#### Pruebas del flujo principal
+
+Con la web y la API levantadas como se describe arriba, carga las [cuentas de demostración](#datos-de-desarrollo):
+
+```bash
+docker compose -f compose.dev.yml exec -w /workspace/apps/api api node ace db:seed
+```
+
+1. Entra en `http://localhost:5173` como `usuario1@requesto.test` con la contraseña de demostración `RequestoDemo24!`. Crea un ticket, comprueba que aparece en estado **Open** y guarda la URL de su detalle.
+2. Abre esa URL en una ventana privada e inicia sesión como `operador1@requesto.test` con la misma contraseña. En el detalle, pulsa **Asignarme**, **Iniciar trabajo** y **Resolver**. Comprueba que el ticket queda en estado **Solved**.
+3. Vuelve a la sesión del peticionario y recarga el detalle. Pulsa **Cerrar ticket** y comprueba que el estado cambia a **Closed** y que el historial recoge el cierre.
+
+Playwright automatiza este recorrido y comprueba por separado que la sesión se restaura al recargar y se elimina al cerrar sesión.
 
 ---
 
@@ -420,7 +434,11 @@ flowchart LR
 3. En el servidor se actualizan las imágenes y se levanta el stack con `docker compose up -d`. La API ejecuta las migraciones pendientes al arrancar.
 4. La configuración (credenciales de la base de datos, clave de la aplicación, proveedor y clave del LLM) se inyecta mediante variables de entorno, nunca en el repositorio.
 
-Para la demo de la entrega final, el mismo `docker-compose.yml` se desplegará en un servidor accesible públicamente.
+La revisión local se realiza con `compose.dev.yml` y las [pruebas del flujo principal](#pruebas-del-flujo-principal).
+
+Para revisar el resultado de la CI, abre **Checks** en la PR o busca el commit de `final-project-PLL` en **Actions**. Los comandos de la sección 1.4 reproducen las comprobaciones de código y las pruebas. Ejecuta `npm audit --package-lock-only --audit-level=high` desde la raíz para reproducir la auditoría de dependencias.
+
+Los cinco jobs pasaron tanto en el [push a la rama final](https://github.com/pedrolaralara/AI4Devs-finalproject/actions/runs/45785460073) como en la [PR borrador de prueba](https://github.com/pedrolaralara/AI4Devs-finalproject/actions/runs/45790723364). La PR se cerró sin fusionar.
 
 ### **2.5. Seguridad**
 
