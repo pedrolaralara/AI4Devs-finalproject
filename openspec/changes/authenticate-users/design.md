@@ -15,7 +15,7 @@ VineJS valida el cuerpo del inicio de sesión. AdonisJS verifica el hash de la c
 
 ### Continuidad
 
-El servidor comprueba que la cuenta sigue activa y obtiene su rol de PostgreSQL. La SPA recupera el perfil al cargar y usa la lista de tickets como destino común cuando esté disponible. Kanban se mantiene aplazado según el plan.
+El servidor comprueba que la cuenta sigue activa y obtiene su rol de PostgreSQL. La SPA recupera el perfil al cargar y cancela la consulta si se desmonta. Hasta que esté disponible la lista de tickets, muestra el nombre, el rol y la opción de cerrar sesión. La lista será el destino común para los tres roles. Kanban se mantiene aplazado según el plan.
 
 ### Salida
 

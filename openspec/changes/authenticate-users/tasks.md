@@ -11,7 +11,7 @@
 
 ## 3. Web (PED-68)
 
-- [ ] 3.1 Implementar y probar con Vitest el formulario, la restauración de sesión, los errores y la salida.
+- [x] 3.1 Implementar y probar con Vitest el formulario, la restauración de sesión, los errores y la salida.
 
 ## 4. Verificación (PED-69)
 

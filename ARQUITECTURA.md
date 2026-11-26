@@ -283,7 +283,7 @@ sequenceDiagram
     else Correctas
         API->>API: Crea la sesión
         API-->>SPA: 200 { id, fullName, role } + Set-Cookie de sesión (HttpOnly)
-        SPA->>SPA: Redirige según el rol (lista o Kanban)
+        SPA->>SPA: Muestra nombre, rol y opción de cerrar sesión
     end
 ```
 

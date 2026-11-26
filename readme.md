@@ -171,7 +171,7 @@ La ruta devuelve `{"status":"ok"}` cuando la API puede consultar PostgreSQL. Par
 docker compose -f compose.dev.yml up api web
 ```
 
-Desde otra terminal ejecuta `curl --fail http://127.0.0.1:5173/api/health` o abre `http://localhost:5173` y comprueba que se muestra «API conectada». Vite reenvía `/api` y `/docs` al servicio de AdonisJS. PostgreSQL usa un volumen persistente y es accesible dentro de la red de Compose. El archivo `compose.dev.yml` usa valores de desarrollo, que se pueden ajustar con `REQUESTO_DB_USER`, `REQUESTO_DB_PASSWORD` y `REQUESTO_DB_NAME` al inicializar el volumen.
+Desde otra terminal ejecuta `curl --fail http://127.0.0.1:5173/api/health` para comprobar la conexión. Abre `http://localhost:5173` para iniciar sesión con una cuenta creada por el [seeder de desarrollo](#datos-de-desarrollo). Tras entrar se muestran el nombre, el rol y la opción de cerrar sesión. Vite reenvía `/api` y `/docs` al servicio de AdonisJS. PostgreSQL usa un volumen persistente y es accesible dentro de la red de Compose. El archivo `compose.dev.yml` usa valores de desarrollo, que se pueden ajustar con `REQUESTO_DB_USER`, `REQUESTO_DB_PASSWORD` y `REQUESTO_DB_NAME` al inicializar el volumen.
 
 **Comandos de desarrollo desde la raíz**
 

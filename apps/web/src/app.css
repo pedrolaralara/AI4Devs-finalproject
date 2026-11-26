@@ -1,0 +1,75 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #172943;
+  background: #f3f6fa;
+}
+
+body {
+  min-width: 0;
+  margin: 0;
+}
+
+main {
+  box-sizing: border-box;
+  width: min(100% - 2rem, 28rem);
+  margin: clamp(2rem, 12vh, 7rem) auto;
+  padding: clamp(1.25rem, 5vw, 2.25rem);
+  background: #fff;
+  border: 1px solid #d5deea;
+  border-radius: 1rem;
+}
+
+h1 {
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: 1.3rem;
+}
+
+form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+input,
+button {
+  box-sizing: border-box;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.45rem;
+  font: inherit;
+}
+
+input {
+  min-width: 0;
+  border: 1px solid #73849a;
+  margin-bottom: 0.55rem;
+}
+
+button {
+  color: white;
+  background: #204b82;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+:focus-visible {
+  outline: 3px solid #2672bd;
+  outline-offset: 2px;
+}
+
+[role="alert"] {
+  color: #a32323;
+}
