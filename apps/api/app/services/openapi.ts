@@ -112,6 +112,7 @@ export async function generateOpenApi() {
     sessionCookie: { type: 'apiKey', in: 'cookie', name: 'adonis-session' },
   }
   me.security = [{ sessionCookie: [] }]
+  paths['/api/tickets'].get.security = [{ sessionCookie: [] }]
 
   const createTicket = paths['/api/tickets'].post
   const ticketInput = schemas.createTicketValidator
@@ -169,7 +170,8 @@ export async function generateOpenApi() {
 
   const viewTicket = paths['/api/tickets/{id}'].get
   viewTicket.security = [{ sessionCookie: [] }]
-  Object.assign(schemas.TicketDetail.properties, schemas.CreatedTicket.properties, {
+  const ticketSummaryProperties = {
+    ...schemas.CreatedTicket.properties,
     status: { type: 'string', enum: ticketStatuses },
     assignee: {
       type: 'object',
@@ -178,6 +180,9 @@ export async function generateOpenApi() {
     },
     solvedAt: { ...dates, nullable: true },
     closedAt: { ...dates, nullable: true },
+  }
+  Object.assign(schemas.TicketListItem.properties, ticketSummaryProperties)
+  Object.assign(schemas.TicketDetail.properties, ticketSummaryProperties, {
     workflowRevision: { type: 'integer', minimum: 0, example: 0 },
   })
   Object.assign(schemas.TicketComment.properties, {

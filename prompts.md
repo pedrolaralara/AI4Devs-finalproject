@@ -54,6 +54,14 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
   - Una contradicción entre la especificación de la API y la HU-04 (qué pasa si un operador asigna a otra persona), detectada y corregida por la propia IA al redactar la sección 4.
 - **Revisión de todos los supuestos:** quedaron abiertas la salida de *Pending user*, la reapertura, la visibilidad, el proveedor LLM, los estados desde los que se puede cancelar un ticket y quién puede editar sus campos y en qué estados. El borrado físico también estaba pendiente en la primera entrega. El autor lo descartó para el MVP al revisar el feedback (véase la sección 7).
 
+### Flujos de trabajo representativos
+
+1. **Requisitos y arquitectura.** A partir del PRD manuscrito, el autor pidió a Claude Code transcribirlo, detectar decisiones pendientes y contrastar la documentación con el temario. El autor definió las restricciones on-premise, el flujo y los permisos.
+2. **Especificación e implementación.** El autor pidió revisar la trazabilidad entre la historia, OpenSpec, el contrato HTTP y las pruebas. Codex desglosó el trabajo en Linear y el autor validó cada bloque antes del commit.
+3. **Pruebas del flujo principal.** El autor pidió poder verificar manualmente los tickets mientras el listado seguía pendiente. Se usó la URL directa del detalle y se comprobó el recorrido en Playwright con sesiones separadas de peticionario y operador.
+4. **Cierre de la entrega y CI.** El autor proporcionó el checklist oficial y pidió desglosar el pipeline en Linear. Codex corrigió el procedimiento de entrega, comprobó las suites de Docker desde una copia de los archivos versionados y reutilizó esos comandos en GitHub Actions. El autor revisó las coincidencias de Gitleaks en el historial base y confirmó que eran ejemplos.
+5. **Listado con visibilidad por rol.** El autor validó el recorrido de HU-02. Codex escribió primero las pruebas de sesión y visibilidad, verificó que fallaban y consultó Context7 para usar la paginación de Lucid con la regla compartida del detalle.
+
 ---
 
 ## 1. Descripción general del producto

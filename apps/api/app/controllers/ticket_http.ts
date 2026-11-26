@@ -44,14 +44,20 @@ export function validTicketId(id: string) {
   return /^[1-9][0-9]{0,18}$/.test(id) && (id.length < maxId.length || id <= maxId)
 }
 
-export function serializeTicketDetail(ticket: Ticket): TicketDetail {
+export function serializeTicketSummary(ticket: Ticket) {
   return {
     ...ticketFields(ticket),
-    workflowRevision: ticket.workflowRevision,
     reporter: userSummary(ticket.reporter),
     assignee: ticket.assignee ? userSummary(ticket.assignee) : null,
     solvedAt: ticket.solvedAt?.toJSDate().toISOString() ?? null,
     closedAt: ticket.closedAt?.toJSDate().toISOString() ?? null,
+  }
+}
+
+export function serializeTicketDetail(ticket: Ticket): TicketDetail {
+  return {
+    ...serializeTicketSummary(ticket),
+    workflowRevision: ticket.workflowRevision,
     comments: ticket.comments.map((comment) => ({
       id: comment.id,
       body: comment.body,

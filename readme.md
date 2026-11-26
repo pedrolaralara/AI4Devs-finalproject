@@ -142,6 +142,8 @@ Se completará en la entrega final, con capturas o vídeo de la aplicación func
 
 ### **1.4. Instrucciones de instalación:**
 
+Tras iniciar sesión, selecciona **Ver tickets** para consultar los tickets visibles para tu rol y abrir su detalle.
+
 Para usar Node 24 y npm con Docker Desktop, ejecuta desde la raíz:
 
 ```bash

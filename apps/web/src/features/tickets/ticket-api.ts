@@ -55,6 +55,18 @@ export async function createTicket(input: TicketInput, signal: AbortSignal): Pro
 
 type Person = { id: string; fullName: string }
 
+export type TicketListItem = Pick<TicketDetail, 'id' | 'key' | 'title' | 'status' | 'priority'>
+
+export async function getTickets(
+  signal: AbortSignal,
+): Promise<{ kind: 'loaded'; tickets: TicketListItem[] } | { kind: 'expired' }> {
+  const response = await fetch('/api/tickets', { signal, cache: 'no-store' })
+  if (response.status === 401) return { kind: 'expired' }
+  if (!response.ok) throw new Error('No se pudo consultar la lista de tickets.')
+  const { data } = (await response.json()) as { data: TicketListItem[] }
+  return { kind: 'loaded', tickets: data }
+}
+
 export type TicketDetail = Omit<CreatedTicket, 'status'> & {
   workflowRevision: number
   type: 'request'

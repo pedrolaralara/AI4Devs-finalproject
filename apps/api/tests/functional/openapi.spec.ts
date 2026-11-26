@@ -57,12 +57,19 @@ test('publishes the ticket creation contract in OpenAPI', async ({ assert, clien
   assert.isTrue(created.properties.priority.readOnly)
 })
 
-test('publishes the aggregated ticket detail contract in OpenAPI', async ({ assert, client }) => {
+test('publishes the ticket list and aggregated detail contracts', async ({ assert, client }) => {
   const response = await client.get('/api/openapi.json')
   response.assertStatus(200)
   const { paths, components } = response.body()
   const operation = paths['/api/tickets/{id}'].get
   const detail = components.schemas.TicketDetail.properties
+  const list = paths['/api/tickets'].get
+  const page = components.schemas.TicketPage.properties
+
+  assert.sameMembers(Object.keys(list.responses), ['200', '401'])
+  assert.deepEqual(list.security, [{ sessionCookie: [] }])
+  assert.equal(page.meta.$ref, '#/components/schemas/TicketPageMeta')
+  assert.equal(page.data.items.$ref, '#/components/schemas/TicketListItem')
 
   assert.sameMembers(Object.keys(operation.responses), ['200', '401', '404'])
   assert.deepEqual(operation.security, [{ sessionCookie: [] }])

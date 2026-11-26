@@ -2,6 +2,7 @@ import { type SubmitEvent, useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router'
 import { CreateTicketForm } from '../tickets/create-ticket-form'
 import { TicketDetailScreen } from '../tickets/ticket-detail'
+import { TicketListScreen } from '../tickets/ticket-list'
 import { getSession, login, logout, type SessionProfile, SessionRequestError } from './session-api'
 
 const roleLabels: Record<SessionProfile['role'], string> = {
@@ -98,13 +99,19 @@ export function SessionScreen() {
           <Route
             path="/"
             element={
-              canCreate && (
+              <>
                 <p>
-                  <Link to="/tickets/new">Crear ticket</Link>
+                  <Link to="/tickets">Ver tickets</Link>
                 </p>
-              )
+                {canCreate && (
+                  <p>
+                    <Link to="/tickets/new">Crear ticket</Link>
+                  </p>
+                )}
+              </>
             }
           />
+          <Route path="/tickets" element={<TicketListScreen onExpired={expireSession} />} />
           <Route
             path="/tickets/new"
             element={
