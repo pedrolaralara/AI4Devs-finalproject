@@ -435,6 +435,8 @@ Usa valores exclusivos para la demo y una base nueva. El cambio de `NODE_ENV` se
 
 La prueba inicial de despliegue se ejecutó sobre el commit `0b5cb57`. Pasaron los seis E2E en Chromium, incluido el cierre del ticket por su peticionario. La recuperación se verificó en otro proyecto Compose con un volumen nuevo. El ticket de prueba conservó su estado cerrado y `/api/health` respondió correctamente en la instancia restaurada. Tras ajustar el uso de cookies en la demo HTTP local, también se verificó el inicio de sesión en WebKit.
 
+Para comprobar la evidencia de entrega se repitió el arranque desde los archivos versionados del commit `6206dc4`, con variables nuevas y un volumen vacío. La API respondió `{"status":"ok"}`, el seeder cargó las cuentas de prueba y pasaron los seis E2E contra la web compilada.
+
 #### Recuperación de una versión y sus datos
 
 Antes de actualizar, registra el commit activo con `git rev-parse HEAD` y guarda una copia de PostgreSQL en almacenamiento protegido.
