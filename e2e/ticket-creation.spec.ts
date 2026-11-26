@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test'
 
-test('creates a request and shows the saved priority', async ({ page }) => {
+test('creates a request and takes it to solved with a different account', async ({
+  baseURL,
+  browser,
+  page,
+}) => {
   await page.goto('/')
   await page.getByLabel('Correo electrónico').fill('usuario1@requesto.test')
   await page.getByLabel('Contraseña').fill('RequestoDemo24!')
@@ -37,4 +41,34 @@ test('creates a request and shows the saved priority', async ({ page }) => {
   await direct.goto(`/tickets/${id}`)
   await expect(direct.getByRole('heading', { name: `${key} · Acceso E2E` })).toBeVisible()
   await expect(direct.getByRole('region', { name: 'Historial' })).toContainText('Ticket creado')
+
+  const operatorContext = await browser.newContext({ baseURL })
+  try {
+    const operator = await operatorContext.newPage()
+    await operator.goto(`/tickets/${id}`)
+    await operator.getByLabel('Correo electrónico').fill('operador1@requesto.test')
+    await operator.getByLabel('Contraseña').fill('RequestoDemo24!')
+    await operator.getByRole('button', { name: 'Iniciar sesión' }).click()
+
+    await operator.getByRole('button', { name: 'Asignarme', exact: true }).click()
+    await expect(operator.getByText('Asignado', { exact: true })).toBeVisible()
+    await operator.getByRole('button', { name: 'Iniciar trabajo' }).click()
+    await expect(operator.getByText('En curso', { exact: true })).toBeVisible()
+    await operator.getByRole('button', { name: 'Resolver', exact: true }).click()
+    const detail = operator.getByRole('region', { name: `${key} · Acceso E2E`, exact: true })
+    await expect(detail.getByRole('definition').filter({ hasText: /^Resuelto$/ })).toBeVisible()
+
+    await operator.reload()
+    await expect(detail.getByRole('definition').filter({ hasText: /^Resuelto$/ })).toBeVisible()
+    await expect(detail.getByRole('definition').filter({ hasText: /^operador1$/ })).toBeVisible()
+    const history = detail.getByRole('region', { name: 'Historial' })
+    await expect(history.getByText('Asignación', { exact: true })).toBeVisible()
+    await expect(history.getByText('status: in_progress → solved')).toBeVisible()
+    await expect(history.getByText(/operador1/).last()).toBeVisible()
+
+    await page.reload()
+    await expect(page.getByRole('definition').filter({ hasText: /^Resuelto$/ })).toBeVisible()
+  } finally {
+    await operatorContext.close()
+  }
 })
