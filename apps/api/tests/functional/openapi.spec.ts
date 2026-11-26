@@ -71,6 +71,29 @@ test('publishes the aggregated ticket detail contract in OpenAPI', async ({ asse
   assert.equal(detail.history.items.$ref, '#/components/schemas/TicketHistoryEntry')
 })
 
+test('publishes workflow revisions, options and failure responses', async ({ assert, client }) => {
+  const response = await client.get('/api/openapi.json')
+  response.assertStatus(200)
+  const { paths, components } = response.body()
+  const { get, post } = paths['/api/tickets/{id}/transitions']
+  const body = components.schemas.ticketTransitionValidator
+
+  assert.sameMembers(Object.keys(get.responses), ['200', '401', '404'])
+  assert.sameMembers(Object.keys(post.responses), ['200', '401', '403', '404', '409', '422'])
+  assert.deepEqual(get.security, [{ sessionCookie: [] }])
+  assert.deepEqual(post.security, [{ sessionCookie: [] }])
+  assert.sameMembers(body.required, ['to', 'expectedRevision'])
+  assert.equal(body.properties.expectedRevision.minimum, 0)
+  assert.equal(components.schemas.TicketDetail.properties.workflowRevision.type, 'integer')
+  assert.deepEqual(get.responses['200'].content['application/json'].example, [
+    { to: 'assigned', requiresAssignee: true },
+  ])
+  const updated = post.responses['200'].content['application/json'].example
+  assert.equal(updated.assignee.id, body.example.assigneeId)
+  assert.equal(updated.workflowRevision, body.example.expectedRevision + 1)
+  assert.lengthOf(post.responses['422'].content['application/json'].schema.oneOf, 2)
+})
+
 test('serves the Scalar reference and its script from the API origin', async ({
   assert,
   client,

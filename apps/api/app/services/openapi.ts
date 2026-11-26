@@ -205,6 +205,8 @@ export async function generateOpenApi() {
 
   const transitionRoutes = paths['/api/tickets/{id}/transitions']
   transitionRoutes.get.security = [{ sessionCookie: [] }]
+  const options = transitionRoutes.get.responses['200'].content?.['application/json']
+  if (options) options.example = [{ to: 'assigned', requiresAssignee: true }]
   const transition = transitionRoutes.post
   transition.security = [{ sessionCookie: [] }]
   const transitionBody = schemas.ticketTransitionValidator
@@ -215,19 +217,19 @@ export async function generateOpenApi() {
     assigneeId: { type: 'string', pattern: '^[1-9][0-9]{0,18}$' },
     expectedRevision: { type: 'integer', minimum: 0, maximum: 2147483647 },
   })
+  const transitionExample = { to: 'assigned', expectedRevision: 0, assigneeId: '10' }
+  transitionBody.example = transitionExample
   if (transition.requestBody) {
     transition.requestBody.required = true
-    transition.requestBody.content['application/json'].example = {
-      to: 'assigned',
-      expectedRevision: 0,
-    }
+    transition.requestBody.content['application/json'].example = transitionExample
   }
   const transitionResult = transition.responses['200'].content?.['application/json']
   if (transitionResult) {
     transitionResult.example = {
       ...(detail?.example as object),
-      status: 'in_progress',
-      workflowRevision: 2,
+      status: 'assigned',
+      assignee: { id: '10', fullName: 'Operador de ejemplo' },
+      workflowRevision: 1,
     }
   }
   const transitionValidation = transition.responses['422'].content?.['application/json']

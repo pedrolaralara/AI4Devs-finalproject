@@ -624,6 +624,8 @@ La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra 
 
 El detalle de HU-03 usa `GET /api/tickets/:id`. Devuelve los campos, `comments` e `history` en una sola respuesta. El contrato implementado y los esquemas de las colecciones están en el OpenAPI generado. Sin sesión activa devuelve `401`. Un identificador inválido, un ticket inexistente y un ticket fuera de la visibilidad devuelven el mismo `404`.
 
+El flujo de HU-04 publica `GET` y `POST /api/tickets/:id/transitions`. El detalle devuelve `workflowRevision` y el POST espera ese valor como `expectedRevision`. Si la revisión ya cambió, el POST devuelve `409`. La [matriz de HU-04](openspec/changes/manage-ticket-workflow/proposal.md#trazabilidad) enlaza criterios y pruebas.
+
 El YAML de esta sección conserva el **contrato de diseño de tickets** de la entrega 1.
 
 **Convenciones comunes:**

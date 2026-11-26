@@ -29,9 +29,13 @@ Ninguna.
 
 ## Trazabilidad
 
-| Criterios del README | Escenarios | Contrato y diseño |
+Los criterios enlazan con la [spec y el contrato HTTP](specs/ticket-workflow/spec.md) y con el [diseño](design.md). El OpenAPI generado se publica en `/api/openapi.json`.
+
+| Criterios del README | Escenarios | Contrato, diseño y pruebas |
 |---|---|---|
-| 1–3 · Asignación | Asignarse, asignar y reasignar, denegar asignación a otro. | POST de transiciones y regla de asignación. |
-| 4–8 y 11 · Flujo y permisos | Iniciar, poner en espera, retomar, resolver, cerrar y cancelar. Rechazar estados finales y saltos. | Matriz independiente de pruebas y visibilidad compartida con el detalle. |
-| 9 · Historial | Cambio atómico con autor y fecha. | Actualización e inserción de eventos en la misma transacción. |
-| 10 · Interfaz | Ofrecer las acciones permitidas. | GET de transiciones y recarga del detalle tras la operación. |
+| 1–3 · Asignación | Asignarse, asignar y reasignar, denegar asignación a otro. | El POST aplica la regla de asignación. Japa prueba la autoasignación, la asignación a un operador activo y el rechazo a asignar a otro sin permiso. |
+| 4–8 y 11 · Flujo y permisos | Iniciar, poner en espera, retomar, resolver, cerrar y cancelar. Rechazar estados finales y saltos. | La matriz unitaria es independiente del código. Japa funcional prueba el recorrido, la cancelación y los rechazos de la API. La escritura de comentarios está fuera del alcance. |
+| 9 · Historial | Cambio atómico con autor y fecha. | Japa comprueba marcas de tiempo, rollback y una sola escritura de historial frente a dos reasignaciones con la misma revisión. |
+| 10 · Interfaz | Ofrecer las acciones permitidas. | Japa comprueba el GET y sus esquemas OpenAPI. Los controles del detalle y su verificación quedan en PED-29 y PED-30. |
+
+[Matriz unitaria](../../../apps/api/tests/unit/ticket_workflow.spec.ts), [API de transiciones en Japa](../../../apps/api/tests/functional/ticket_transitions.spec.ts) y [regresión del OpenAPI](../../../apps/api/tests/functional/openapi.spec.ts).
