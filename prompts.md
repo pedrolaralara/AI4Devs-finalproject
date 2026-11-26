@@ -290,3 +290,5 @@ Pasaron Biome, TypeScript, las 23 pruebas de Japa y las dos de Vitest. La instal
 El autor confirmó para HU-03 la consulta desde la URL o al recargar, la respuesta agregada, el orden de más antiguo a más reciente y el mensaje cuando aún no hay comentarios.
 
 **Prueba roja del detalle (PED-82).** Codex reutilizó la preparación de cuentas y sesiones de las pruebas de creación. Japa creó el ticket con una sesión real y PostgreSQL aislado. La consulta posterior esperaba `200` con el detalle y el evento original, y devolvió `404` porque la ruta aún no existe. Pasaron las otras 31 pruebas de Japa y las nueve de Vitest.
+
+**API de detalle (PED-83).** Codex consultó Context7 sobre las consultas y transacciones de Lucid. Aplicó la matriz de visibilidad al acceder al ticket y cargó las relaciones ordenadas dentro de la misma instantánea de PostgreSQL. Japa pasó de `404` a `200` para el reportero y verificó el mismo error para identificadores inválidos, inexistentes o fuera de la visibilidad. También comprobó el orden de las colecciones y el OpenAPI. Pasaron 36 pruebas de Japa, nueve de Vitest, Biome, TypeScript, OpenSpec y el build de la API.

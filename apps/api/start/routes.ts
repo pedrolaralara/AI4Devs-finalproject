@@ -15,6 +15,7 @@ router
   .prefix('/api/auth')
 
 router.post('/api/tickets', [TicketsController, 'store'])
+router.get('/api/tickets/:id', [TicketsController, 'show'])
 
 router.get('/api/openapi.json', [ApiDocsController, 'spec'])
 router.get('/api/docs/scalar.js', [ApiDocsController, 'script'])

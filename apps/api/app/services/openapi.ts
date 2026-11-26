@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import app from '@adonisjs/core/services/app'
 import router from '@adonisjs/core/services/router'
-import { userRoles } from '#models/ticket_types'
+import { ticketEventTypes, ticketStatuses, userRoles } from '#models/ticket_types'
 
 const require = createRequire(import.meta.url)
 const { default: autoSwagger } = require('adonis-autoswagger') as {
@@ -166,6 +166,34 @@ export async function generateOpenApi() {
       updatedAt: '2026-11-26T10:00:00.000Z',
     }
   }
+
+  const viewTicket = paths['/api/tickets/{id}'].get
+  viewTicket.security = [{ sessionCookie: [] }]
+  Object.assign(schemas.TicketDetail.properties, schemas.CreatedTicket.properties, {
+    status: { type: 'string', enum: ticketStatuses },
+    assignee: {
+      type: 'object',
+      nullable: true,
+      allOf: [{ $ref: '#/components/schemas/TicketReporter' }],
+    },
+    solvedAt: { ...dates, nullable: true },
+    closedAt: { ...dates, nullable: true },
+  })
+  Object.assign(schemas.TicketComment.properties, {
+    id: { type: 'string', pattern: '^[0-9]+$' },
+    createdAt: dates,
+  })
+  const nullableText = { type: 'string', nullable: true }
+  Object.assign(schemas.TicketHistoryEntry.properties, {
+    id: { type: 'string', pattern: '^[0-9]+$' },
+    eventType: { type: 'string', enum: ticketEventTypes },
+    field: nullableText,
+    oldValue: nullableText,
+    newValue: nullableText,
+    createdAt: dates,
+  })
+  const detail = viewTicket.responses['200'].content?.['application/json']
+  if (detail) detail.example = { ...(created?.example as object), comments: [], history: [] }
 
   // Publish only schemas referenced by a documented operation.
   const referenced = new Set(schemaReferences(paths))

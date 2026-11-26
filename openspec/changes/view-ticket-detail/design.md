@@ -9,7 +9,7 @@ HU-01 muestra el resumen devuelto por la creación. Consultar la URL o recargar 
 
 ## Decisions
 
-- La API aplica la política de visibilidad antes de responder. El cliente presenta el resultado de la consulta.
+- La API aplica la política de visibilidad en la consulta del ticket. Lee los comentarios y el historial desde la misma instantánea de PostgreSQL para que los tres conjuntos de datos correspondan al mismo momento. El cliente presenta el resultado.
 - La respuesta de detalle reutiliza los campos del contrato de tickets e incluye dos colecciones, comentarios e historial.
 - Las colecciones se ordenan de más antiguo a más reciente, usando el id para desempatar fechas.
 - La SPA usa la URL existente `/tickets/:id` y distingue carga, sesión caducada, ticket no disponible y error de conexión.

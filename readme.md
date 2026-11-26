@@ -611,7 +611,7 @@ El seeder de desarrollo crea seis cuentas sintéticas: `supervisor@requesto.test
 
 El contrato cubre la **creación de tickets** (HU-01), el **listado con filtros** (HU-02 y HU-05) y la **consulta y ejecución de transiciones** (HU-04 y HU-05).
 
-La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra con Scalar en `/docs`. En desarrollo se puede abrir en `http://localhost:5173/docs`. El documento describe actualmente HU-00 y la creación de tickets de HU-01 y se genera con `adonis-autoswagger` a partir de las rutas, validadores y comentarios de los controladores. El build de la API incluye el JSON generado y sirve Scalar desde una dependencia npm local.
+La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra con Scalar en `/docs`. En desarrollo se puede abrir en `http://localhost:5173/docs`. El documento describe actualmente HU-00, la creación de tickets de HU-01 y la consulta de HU-03 y se genera con `adonis-autoswagger` a partir de las rutas, validadores y comentarios de los controladores. El build de la API incluye el JSON generado y sirve Scalar desde una dependencia npm local.
 
 | Operación de HU-00 | Respuesta |
 |---|---|
@@ -619,6 +619,8 @@ La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra 
 | `POST /api/auth/login` | `200` con el perfil y la cookie de sesión. `400` si fallan las credenciales, `403` si falla CSRF, `422` si falla la validación. |
 | `GET /api/auth/me` | `200` con el perfil vigente o `401` sin acceso. |
 | `POST /api/auth/logout` | `204` tras revocar la sesión o `403` si falla CSRF. |
+
+El detalle de HU-03 usa `GET /api/tickets/:id`. Devuelve los campos, `comments` e `history` en una sola respuesta. El contrato implementado y los esquemas de las colecciones están en el OpenAPI generado. Sin sesión activa devuelve `401`. Un identificador inválido, un ticket inexistente y un ticket fuera de la visibilidad devuelven el mismo `404`.
 
 El YAML de esta sección conserva el **contrato de diseño de tickets** de la entrega 1.
 

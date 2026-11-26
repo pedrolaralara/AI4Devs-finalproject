@@ -44,5 +44,5 @@ La API SHALL servir el detalle mediante `GET /api/tickets/:id` y conservar los i
 
 #### Scenario: Consultar sin acceso
 
-- **WHEN** el cliente solicita el detalle sin sesión activa, o pide un ticket inexistente o fuera de su visibilidad
+- **WHEN** el cliente solicita el detalle sin sesión activa, o pide un identificador inválido, un ticket inexistente o un ticket fuera de su visibilidad
 - **THEN** recibe `401` si la sesión no es válida o `404` si el ticket no está disponible para esa sesión
