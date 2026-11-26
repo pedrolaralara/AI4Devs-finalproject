@@ -17,6 +17,12 @@ export default defineConfig({
         naturalSort: true,
         paths: ['database/migrations'],
       },
+      seeders: {
+        paths: ['database/seeders'],
+      },
+      schemaGeneration: {
+        enabled: false,
+      },
     },
   },
 })

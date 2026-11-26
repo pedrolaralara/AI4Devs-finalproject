@@ -503,6 +503,8 @@ erDiagram
 | `ticket_status` | `open`, `assigned`, `in_progress`, `pending_user`, `solved`, `closed`, `canceled` |
 | `ticket_event_type` | `created`, `status_changed`, `assigned`, `unassigned`, `field_updated` |
 
+Las migraciones están en `apps/api/database/migrations/`. PostgreSQL genera los identificadores por identidad. Lucid conserva los identificadores `bigint` como cadenas para evitar pérdidas de precisión en JavaScript. Las fechas de creación y actualización tienen `DEFAULT now()` donde existe la columna. Lucid actualiza `updated_at` al guardar.
+
 ### **3.2. Descripción de entidades principales:**
 
 #### `users`: personas con acceso a la aplicación
@@ -513,7 +515,7 @@ Una sola tabla para los tres roles. El rol determina qué puede hacer cada perso
 |----------|------|---------------|-------------|
 | `id` | `bigint` | PK, identity | Identificador. |
 | `full_name` | `varchar(120)` | NOT NULL | Nombre completo. |
-| `email` | `varchar(254)` | NOT NULL, UNIQUE | Email de acceso; se guarda en minúsculas. |
+| `email` | `varchar(254)` | NOT NULL, UNIQUE, CHECK `email = lower(email)` | Email de acceso en minúsculas. |
 | `password` | `varchar(255)` | NOT NULL | Hash de la contraseña (nunca en claro). |
 | `role` | `user_role` | NOT NULL | `requester`, `agent` o `supervisor`. |
 | `is_active` | `boolean` | NOT NULL, DEFAULT `true` | Permite dar de baja a una persona sin borrar su rastro en tickets e historial. |
@@ -532,7 +534,7 @@ Una sola tabla para los tres roles. El rol determina qué puede hacer cada perso
 | `status` | `ticket_status` | NOT NULL, DEFAULT `'open'` | Estado actual del flujo. |
 | `urgency` | `smallint` | NOT NULL, CHECK 1-5 | Urgencia indicada al crear el ticket. |
 | `impact` | `smallint` | NOT NULL, CHECK 1-5 | Impacto indicado al crear el ticket. |
-| `priority` | `smallint` | Columna generada `STORED`: `ceil(urgency * impact / 5.0)` | Prioridad de 1 a 5. Al calcularla la base de datos, nunca puede quedar desincronizada. |
+| `priority` | `smallint` | NOT NULL, columna generada `STORED`: `ceil(urgency * impact / 5.0)` | Prioridad de 1 a 5. Lucid la refresca después de guardar. |
 | `reporter_id` | `bigint` | FK → `users.id`, NOT NULL, `ON DELETE RESTRICT` | Quién abrió el ticket. |
 | `assignee_id` | `bigint` | FK → `users.id`, NULL, `ON DELETE RESTRICT` | Operador asignado. |
 | `solved_at` | `timestamptz` | NULL | Momento en que pasó a `solved` (para métricas de resolución). |
@@ -582,6 +584,15 @@ Ejemplo: cuando un operador pasa el ticket 42 de `assigned` a `in_progress`, se 
 - **Sin borrado físico de tickets.** Un ticket que no procede se cancela (`canceled`), así se conserva la trazabilidad. Los `ON DELETE CASCADE` de comentarios e historial solo existen para tareas de mantenimiento.
 - **Historial como tabla de eventos genérica** (`field`, `old_value`, `new_value`) en lugar de una columna por campo: con pocos campos fijos, es simple y sirve igual para el agente de IA ("¿cuánto tardó en resolverse?").
 - **Sesiones:** se guardan en cookie firmada o en el almacén de sesiones de AdonisJS, fuera de este modelo.
+
+#### Datos de desarrollo
+
+```bash
+docker compose -f compose.dev.yml run --rm -T -w /workspace/apps/api api node ace migration:run
+docker compose -f compose.dev.yml run --rm -T -w /workspace/apps/api api node ace db:seed
+```
+
+El seeder de desarrollo crea seis cuentas sintéticas: `supervisor@requesto.test`, `operador1@requesto.test`, `operador2@requesto.test` y `usuario1@requesto.test` a `usuario3@requesto.test`. La contraseña de demostración es `RequestoDemo24!`. Añade tres tickets por estado con comentarios e historial. Volver a ejecutarlo en la misma base de desarrollo conserva los ejemplos existentes.
 
 ---
 

@@ -5,6 +5,7 @@ import { apiClient } from '@japa/api-client'
 import { assert } from '@japa/assert'
 import { pluginAdonisJS } from '@japa/plugin-adonisjs'
 import type { Config } from '@japa/runner/types'
+import env from '#start/env'
 
 /**
  * Configure Japa plugins in the plugins array.
@@ -25,7 +26,14 @@ export const plugins: Config['plugins'] = [
  * The teardown functions are executed after all the tests
  */
 export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
-  setup: [],
+  setup: [
+    () => {
+      if (env.get('DB_DATABASE') !== 'requesto_test') {
+        throw new Error('Run the integration tests against the isolated requesto_test database')
+      }
+      return testUtils.db().migrate()
+    },
+  ],
   teardown: [],
 }
 
