@@ -4,9 +4,10 @@
 
 ## 2. Backend (PED-16)
 
-- [ ] 2.1 Escribir las pruebas unitarias de la matriz y ejecutar la primera prueba roja.
-- [ ] 2.2 Implementar la máquina de estados, las consultas de acciones y la escritura transaccional.
-- [ ] 2.3 Verificar respuestas, historial, concurrencia y OpenAPI contra PostgreSQL.
+- [x] 2.1 Escribir las pruebas unitarias de la matriz y ejecutar la primera prueba roja sin PostgreSQL (PED-87).
+- [ ] 2.2 Implementar la máquina de estados pura y pasar la matriz de Japa (PED-88).
+- [ ] 2.3 Implementar la consulta y la escritura transaccional con pruebas de permisos, historial y concurrencia (PED-89).
+- [ ] 2.4 Contrastar OpenAPI, requisitos, diseño y pruebas de la API (PED-90).
 
 ## 3. Interfaz y verificación
 

@@ -20,14 +20,7 @@ export const plugins: Config['plugins'] = [assert(), pluginAdonisJS(app), apiCli
  * The teardown functions are executed after all the tests
  */
 export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
-  setup: [
-    () => {
-      if (env.get('DB_DATABASE') !== 'requesto_test') {
-        throw new Error('Run the integration tests against the isolated requesto_test database')
-      }
-      return testUtils.db().migrate()
-    },
-  ],
+  setup: [],
   teardown: [],
 }
 
@@ -37,6 +30,12 @@ export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
  */
 export const configureSuite: Config['configureSuite'] = (suite) => {
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
-    return suite.setup(() => testUtils.httpServer().start())
+    suite.setup(() => {
+      if (env.get('DB_DATABASE') !== 'requesto_test') {
+        throw new Error('Run the integration tests against the isolated requesto_test database')
+      }
+      return testUtils.db().migrate()
+    })
+    suite.setup(() => testUtils.httpServer().start())
   }
 }
