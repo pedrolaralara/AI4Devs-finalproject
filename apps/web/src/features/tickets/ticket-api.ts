@@ -52,3 +52,40 @@ export async function createTicket(input: TicketInput, signal: AbortSignal): Pro
   }
   return { kind: 'failed', message: defaultError }
 }
+
+type Person = { id: string; fullName: string }
+
+export type TicketDetail = Omit<CreatedTicket, 'status'> & {
+  type: 'request'
+  status: 'open' | 'assigned' | 'in_progress' | 'pending_user' | 'solved' | 'closed' | 'canceled'
+  reporter: Person
+  assignee: Person | null
+  createdAt: string
+  updatedAt: string
+  solvedAt: string | null
+  closedAt: string | null
+  comments: { id: string; body: string; author: Person; createdAt: string }[]
+  history: {
+    id: string
+    eventType: 'created' | 'status_changed' | 'assigned' | 'unassigned' | 'field_updated'
+    actor: Person
+    field: string | null
+    oldValue: string | null
+    newValue: string | null
+    createdAt: string
+  }[]
+}
+
+export async function getTicket(
+  id: string,
+  signal: AbortSignal,
+): Promise<{ kind: 'found'; ticket: TicketDetail } | { kind: 'missing' } | { kind: 'expired' }> {
+  const response = await fetch(`/api/tickets/${encodeURIComponent(id)}`, {
+    signal,
+    cache: 'no-store',
+  })
+  if (response.status === 404) return { kind: 'missing' }
+  if (response.status === 401) return { kind: 'expired' }
+  if (!response.ok) throw new Error('No se pudo consultar el ticket.')
+  return { kind: 'found', ticket: await response.json() }
+}

@@ -308,10 +308,12 @@ sequenceDiagram
     API->>DB: INSERT ticket_events (created)
     API->>DB: COMMIT
     API-->>SPA: 201 + ticket (con priority y key REQ-id)
-    SPA-->>U: Abre el resumen del ticket creado con la prioridad guardada
+    SPA->>API: GET /api/tickets/:id
+    API-->>SPA: 200 + detalle, comentarios e historial
+    SPA-->>U: Muestra el detalle con la prioridad guardada
 ```
 
-La SPA usa el resultado de la creación para abrir `/tickets/:id`. Ese resumen se conserva mientras la SPA está abierta. HU-03 incorporará la consulta del detalle desde la API al abrir una URL directa o recargar.
+La SPA usa el identificador de la respuesta de creación para abrir `/tickets/:id`. El detalle se consulta desde la API al navegar, abrir la URL directamente o recargar.
 
 ### 7.3 Cambiar el estado de un ticket
 
@@ -405,7 +407,7 @@ Principios de diseño de datos:
 
 ## 9. API
 
-El contrato de diseño de tickets y el resumen de HU-00 están en la **sección 4 del `readme.md`**. AdonisJS publica el contrato implementado de sesión y creación de tickets en `/api/openapi.json` y la referencia Scalar en `/docs`. El build genera el JSON con `adonis-autoswagger` y lo copia como artefacto. El navegador carga el script de Scalar desde el mismo origen.
+El contrato de diseño de tickets y el resumen de HU-00 están en la **sección 4 del `readme.md`**. AdonisJS publica el contrato implementado de sesión, creación y detalle de tickets en `/api/openapi.json` y la referencia Scalar en `/docs`. El build genera el JSON con `adonis-autoswagger` y lo copia como artefacto. El navegador carga el script de Scalar desde el mismo origen.
 
 Convenciones:
 - Rutas bajo `/api`, recursos en plural (`/tickets`) y acciones de flujo como subrecurso (`/tickets/:id/transitions`).

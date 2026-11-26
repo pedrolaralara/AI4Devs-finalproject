@@ -1,8 +1,7 @@
-import { type SubmitEvent, useEffect, useState } from 'react'
+import { type SubmitEvent, useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router'
 import { CreateTicketForm } from '../tickets/create-ticket-form'
-import { CreatedTicketDetail } from '../tickets/created-ticket-detail'
-import type { CreatedTicket } from '../tickets/ticket-api'
+import { TicketDetailScreen } from '../tickets/ticket-detail'
 import { getSession, login, logout, type SessionProfile, SessionRequestError } from './session-api'
 
 const roleLabels: Record<SessionProfile['role'], string> = {
@@ -14,7 +13,6 @@ const roleLabels: Record<SessionProfile['role'], string> = {
 export function SessionScreen() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState<SessionProfile | null>()
-  const [createdTicket, setCreatedTicket] = useState<CreatedTicket>()
   const [restoreFailed, setRestoreFailed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -58,7 +56,6 @@ export function SessionScreen() {
     try {
       await logout()
       setProfile(null)
-      setCreatedTicket(undefined)
       void navigate('/', { replace: true })
     } catch {
       setError('No se pudo cerrar sesión. Inténtalo de nuevo.')
@@ -66,6 +63,11 @@ export function SessionScreen() {
       setBusy(false)
     }
   }
+
+  const expireSession = useCallback(() => {
+    setProfile(null)
+    setError('La sesión ha caducado. Vuelve a iniciar sesión.')
+  }, [])
 
   if (restoreFailed) {
     return (
@@ -109,21 +111,16 @@ export function SessionScreen() {
               canCreate ? (
                 <CreateTicketForm
                   onCreated={(ticket) => {
-                    setCreatedTicket(ticket)
                     void navigate(`/tickets/${ticket.id}`, { replace: true })
                   }}
-                  onExpired={() => {
-                    setCreatedTicket(undefined)
-                    setProfile(null)
-                    setError('La sesión ha caducado. Vuelve a iniciar sesión.')
-                  }}
+                  onExpired={expireSession}
                 />
               ) : (
                 <Navigate to="/" replace />
               )
             }
           />
-          <Route path="/tickets/:id" element={<CreatedTicketDetail ticket={createdTicket} />} />
+          <Route path="/tickets/:id" element={<TicketDetailScreen onExpired={expireSession} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </>

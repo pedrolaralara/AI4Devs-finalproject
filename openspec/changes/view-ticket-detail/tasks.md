@@ -6,5 +6,5 @@
 
 - [x] 2.1 Ejecutar la primera prueba roja de Japa de consulta del ticket y su evento de creación (PED-82).
 - [x] 2.2 Implementar el contrato HTTP, cubrir la matriz de visibilidad y contrastarlo con el OpenAPI generado (PED-83).
-- [ ] 2.3 Integrar el detalle en React con pruebas de carga, recarga y errores (PED-84).
+- [x] 2.3 Integrar el detalle en React y cubrir la URL directa, los comentarios, el historial y los errores con Vitest (PED-84). La recarga en Chromium se verifica en PED-85.
 - [ ] 2.4 Verificar la consulta desde el navegador y actualizar la documentación y el registro de IA (PED-85).

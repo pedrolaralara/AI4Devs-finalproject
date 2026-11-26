@@ -45,6 +45,21 @@ test('shows a priority preview and opens the saved ticket using the API result',
     ),
     'supervisor',
   )
+  fetchApi.mockResolvedValueOnce(
+    Response.json({
+      ...input,
+      id: '42',
+      key: 'REQ-42',
+      priority: 3,
+      status: 'open',
+      reporter: { id: '7', fullName: 'Cuenta de prueba' },
+      assignee: null,
+      createdAt: '2026-11-26T08:00:00Z',
+      updatedAt: '2026-11-26T08:00:00Z',
+      comments: [],
+      history: [],
+    }),
+  )
   render(<App />)
   await fillTicketForm()
 
