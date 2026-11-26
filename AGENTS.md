@@ -46,8 +46,8 @@ En código se usa `requester` en lugar de `user` para no confundir el rol con la
 | Entrega | Estado |
 |---------|--------|
 | 1 · Documentación técnica | ✅ **Entregada el 24/09/2026** (PR desde `feature/entrega-1-PLL` y formulario enviado). |
-| 2 · Código funcional | Rama `feature/entrega-2-PLL` publicada hasta `c54df96`. Pendiente de que el autor envíe el formulario. |
-| 3 · Entrega final | En curso en la rama local `final-project-PLL`, que incorpora la verificación del cierre por el peticionario. Prórroga aprobada hasta el 26/11/2026. |
+| 2 · Código funcional | Entregada el 26/11/2026. El autor confirmó el envío del formulario para la rama `feature/entrega-2-PLL`, publicada hasta `c54df96`. |
+| 3 · Entrega final | En curso en la rama `final-project-PLL`, publicada en el fork y usada para integrar las historias restantes. Prórroga aprobada hasta el 26/11/2026. |
 
 Objetivo de la entrega 2 (sección 5 del `readme.md`): *un usuario abre un ticket y un operador lo lleva hasta resuelto, de principio a fin*, con HU-00, HU-01, HU-03 y HU-04.
 
@@ -167,7 +167,7 @@ Preferencias del autor (Pedro Lara Lara, iniciales **PLL**) para trabajar con as
 - **Paso a paso.** Se avanza por bloques (una sección, un documento, una historia). Al terminar cada bloque, resume qué has hecho y propón el siguiente paso; no encadenes varios bloques sin confirmación.
 - **Propón antes de hacer cambios grandes.** Si hay varias opciones con consecuencias (arquitectura, alcance, estructura), preséntalas con una recomendación y espera la decisión.
 - **Supuestos siempre explícitos.** Todo lo que decidas sin que venga de los requisitos se lista al final de tu respuesta para que el autor lo valide, y en la documentación se marca **(asumido)**.
-- **Git solo cuando se pide.** No hagas commit ni push por iniciativa propia: espera a que el autor lo pida ("haz commit", "commit y push"). Los commits siguen las convenciones de arriba.
+- **Autorización de Git.** La validación del autor autoriza el commit local de la subtarea. Para publicar una rama, abrir su PR o fusionarla, sigue las autorizaciones del flujo de trabajo descrito más abajo.
 - **Respeta los cambios del autor.** Si un archivo ha cambiado por su lado, parte de ese estado y no lo reviertas. Si algo parece un error (p. ej. una errata), señálalo y pregunta antes de corregirlo.
 - **Revisión contra el temario del máster.** Al cerrar una entrega o una fase, el autor suele pedir que se revise el trabajo contra los módulos del máster (p. ej. el 4 de planificación y el 5 de documentación). Las lecciones están en la plataforma de LIDR, que requiere sesión: el login lo hace el autor y el agente solo lee el contenido.
 - **Registro de IA al día.** Los prompts y decisiones significativas se registran en `prompts.md`, incluidos los errores de la IA que se detecten y los ajustes humanos.
@@ -201,10 +201,10 @@ Cuando generes historias o tickets, no les des a todas la misma forma: indica su
 Antes de empezar una historia o una tarea, desglosa sus pasos en subtareas bajo el issue padre en Linear. Reutiliza las que ya existan. Da a cada subtarea un resultado verificable, indica las dependencias que afecten al orden y mantén su estado al día: **Todo** si está pendiente, **In Progress** cuando se empiece y **Done** cuando se haya verificado el resultado.
 
 1. Una historia → un **change de OpenSpec**, como primera tarea técnica al empezar la historia. El agente trabaja sobre el change. Enlaza y revisa las cuatro vistas: historia y criterios de aceptación en el README, escenarios funcionales en la spec, contrato HTTP en un requisito propio de la spec si aplica y decisiones de implementación en `design.md`. Usa los mismos identificadores de criterio para seguir cada comportamiento hasta el contrato que lo soporta. Tras un cambio, comprueba que coinciden alcance, permisos y resultados. Al implementar una API, contrasta también el OpenAPI generado con el contrato.
-2. Antes de trabajar en una historia o tarea de Linear, crea una rama de trabajo propia que incluya el identificador del issue. Abre una pull request pequeña que enlace el issue y aplique la DoD de su tipo.
-3. Al terminar la tarea, ejecuta sus comprobaciones y presenta el resultado al autor. Su confirmación de que el resultado está bien autoriza el commit de esa tarea. Haz push solo cuando el autor lo pida.
-4. Cada PR lleva una etiqueta de **origen**: `human`, `human+copilot`, `agent` o `agent+human-review`. Sirve para medir la calidad según el origen, no para inflar la velocidad.
-5. Toda PR la revisa al menos una persona antes de integrarla, aunque la haya revisado un agente.
+2. Crea la rama de la historia desde `final-project-PLL`. Crea cada rama local de subtarea desde la rama de su historia con el identificador de Linear en el nombre. Al acabar, ejecuta las comprobaciones y presenta el resultado al autor. Su validación autoriza el commit local de la subtarea y su integración en la rama de la historia.
+3. Abre **una PR por historia** en el fork, desde la rama de la historia hacia `final-project-PLL`. La PR enlaza la historia de Linear y aplica su DoD. Publica la rama y abre la PR cuando el autor lo pida. Puedes abrirla como borrador si se acuerda ejecutar la CI antes de completar la historia.
+4. Cada PR lleva una etiqueta de **origen** (`human`, `human+copilot`, `agent` o `agent+human-review`). Para fusionarla, comprueba que la CI de la PR está en verde, que hay revisión humana y que el autor aprueba la integración. Después comprueba la CI del push a `final-project-PLL`.
+5. `final-project-PLL` es la rama de integración de las historias restantes. Cuando esté lista y con la CI en verde, el autor usa su URL directa para registrar la entrega definitiva en el Typeform. El entorno de ejecución de la demo se gestiona aparte.
 
 ### Definition of Done por tipo de trabajo
 
