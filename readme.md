@@ -1495,3 +1495,5 @@ Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de es
 
 **Pull Request 3**
 
+
+<!-- PED-102: cambio temporal para comprobar el disparador de CI en pull requests. -->
