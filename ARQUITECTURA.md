@@ -327,7 +327,7 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     Op->>SPA: Pulsa "Resolver" (o arrastra la tarjeta a Solved)
-    SPA->>API: POST /api/tickets/42/transitions { to: "solved" }
+    SPA->>API: POST /api/tickets/42/transitions { to: "solved", expectedRevision: 3 }
     API->>API: Valida sesión, CSRF y cuerpo (VineJS)
     API->>Pol: ¿Puede este usuario cambiar el estado del ticket 42?
     alt Sin permiso
@@ -341,7 +341,7 @@ sequenceDiagram
             API-->>SPA: 422 Unprocessable Entity
         else Transición válida
             SM->>DB: BEGIN
-            SM->>DB: UPDATE tickets SET status = 'solved', solved_at = now()<br/>WHERE id = 42 AND status = 'in_progress'
+            SM->>DB: UPDATE tickets SET status = 'solved', solved_at = now(), workflow_revision = workflow_revision + 1<br/>WHERE id = 42 AND workflow_revision = expectedRevision
             alt 0 filas actualizadas (otro lo cambió antes)
                 SM->>DB: ROLLBACK
                 API-->>SPA: 409 Conflict

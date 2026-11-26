@@ -133,6 +133,8 @@ Flujo principal: `Open → Assigned → In progress → Solved → Closed`. Esta
 | `Solved` | `Closed` | Reportero del ticket (peticionario o supervisor) |
 | `Open`, `Assigned`, `In progress`, `Pending user` | `Canceled` | Reportero; operador asignado; supervisor |
 
+Para asignar o reasignar, la cuenta elegida debe estar activa y tener rol `agent`. El historial registra cambios de estado y de asignación. Una reasignación en `Assigned` registra el cambio de asignado sin generar un evento de cambio de estado.
+
 La vuelta de `Pending user` a `In progress` es manual y corresponde al operador asignado o al supervisor. El reportero puede responder mediante un comentario y el ticket permanece en `Pending user` hasta que se retome el trabajo.
 
 Desde `Solved` solo se puede pasar a `Closed`. Si hace falta retomar el asunto, se abre un ticket nuevo.
@@ -157,7 +159,7 @@ El reportero puede editar el título, la descripción, la urgencia y el impacto 
 |--------|:-------:|:--------:|:----------:|
 | Abrir un ticket | ✅ | ❌ | ✅ |
 | Comentar en un ticket **(asumido)** | ✅ | ✅ | ✅ |
-| Asignarse un ticket | | ✅ | ✅ |
+| Asignarse un ticket | | ✅ | |
 | Asignar un ticket a otro operador | | | ✅ |
 | Pasar a *In progress*, *Pending user* o *Solved* | | ✅ | ✅ |
 | Cancelar un ticket | ✅ (los suyos) | ✅ | ✅ |

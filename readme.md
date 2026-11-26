@@ -111,7 +111,7 @@ El operador asignado o un supervisor retoman manualmente un ticket en `Pending u
 |--------|:-------:|:--------:|:--------:|
 | Abrir un ticket | ✅ | | ✅ |
 | Comentar en un ticket | ✅ | ✅ | ✅ |
-| Asignarse un ticket | | ✅ | ✅ |
+| Asignarse un ticket | | ✅ | |
 | Asignar un ticket a otro operador | | | ✅ |
 | Pasar a *In progress*, *Pending user* o *Solved* | | ✅ | ✅ |
 | Cancelar un ticket | ✅ | ✅ | ✅ |
@@ -280,7 +280,7 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     Op->>SPA: Pulsa "Resolver" (o arrastra la tarjeta a Solved)
-    SPA->>API: POST /api/tickets/42/transitions { to: "solved" }
+    SPA->>API: POST /api/tickets/42/transitions { to: "solved", expectedRevision: 3 }
     API->>API: Valida sesión, CSRF y cuerpo (VineJS)
     API->>Pol: ¿Puede este usuario cambiar el estado del ticket 42?
     alt Sin permiso
@@ -294,7 +294,7 @@ sequenceDiagram
             API-->>SPA: 422 Unprocessable Entity
         else Transición válida
             SM->>DB: BEGIN
-            SM->>DB: UPDATE tickets SET status = 'solved', solved_at = now()<br/>WHERE id = 42 AND status = 'in_progress'
+            SM->>DB: UPDATE tickets SET status = 'solved', solved_at = now(), workflow_revision = workflow_revision + 1<br/>WHERE id = 42 AND workflow_revision = expectedRevision
             alt 0 filas actualizadas (otro lo cambió antes)
                 SM->>DB: ROLLBACK
                 API-->>SPA: 409 Conflict
@@ -554,7 +554,7 @@ Una sola tabla para los tres roles. El rol determina qué puede hacer cada perso
 
 **Restricciones adicionales:**
 - `CHECK (status IN ('open', 'canceled') OR assignee_id IS NOT NULL)`: a partir de `assigned`, el ticket siempre tiene un operador asignado.
-- Que el assignee tenga rol `agent` o `supervisor` y que las transiciones de estado sean válidas se comprueba en la capa de dominio (máquina de estados), porque depende de quién hace el cambio.
+- Que el assignee tenga rol `agent` y esté activo y que las transiciones de estado sean válidas se comprueba en la capa de dominio (máquina de estados), porque depende de quién hace el cambio.
 
 **Índices:** `status`, `assignee_id`, `reporter_id`, `priority` y `created_at`, que son los campos por los que filtran la lista y el Kanban.
 
@@ -815,10 +815,10 @@ paths:
             examples:
               resolver:
                 summary: El operador asignado resuelve el ticket
-                value: { to: solved }
+                value: { to: solved, expectedRevision: 3 }
               asignar:
                 summary: Un supervisor asigna el ticket a un operador
-                value: { to: assigned, assigneeId: "7" }
+                value: { to: assigned, assigneeId: "7", expectedRevision: 0 }
       responses:
         '200':
           description: Transición aplicada. Devuelve el ticket actualizado.
@@ -837,13 +837,13 @@ paths:
                 message: Solo el operador asignado o un supervisor pueden pasar este ticket a solved.
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
-          description: El ticket cambió de estado mientras tanto. Hay que recargarlo y reintentar.
+          description: El flujo o la asignación del ticket cambió. Hay que recargarlo y reintentar.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
               example:
                 code: STALE_TICKET
-                message: El ticket ya no está en in_progress.
+                message: El ticket cambió. Recarga el detalle.
         '422':
           description: La transición no existe en el flujo o el cuerpo no es válido.
           content:
@@ -901,10 +901,11 @@ components:
 
     TransitionRequest:
       type: object
-      required: [to]
+      required: [to, expectedRevision]
       additionalProperties: false
       properties:
         to: { $ref: '#/components/schemas/TicketStatus' }
+        expectedRevision: { type: integer, minimum: 0, description: Revisión de flujo que devolvió el detalle. }
         assigneeId:
           type: string
           pattern: '^[0-9]+$'
@@ -924,6 +925,7 @@ components:
         title: { type: string }
         description: { type: string }
         status: { $ref: '#/components/schemas/TicketStatus' }
+        workflowRevision: { type: integer, minimum: 0, description: Revisión de flujo que devuelven el detalle y la transición. }
         urgency: { type: integer, minimum: 1, maximum: 5 }
         impact: { type: integer, minimum: 1, maximum: 5 }
         priority:
@@ -1382,17 +1384,17 @@ Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de es
 3. **Validador VineJS `transitionValidator`:** `to` ∈ `ticket_status`; `assigneeId` obligatorio solo si `to = 'assigned'` y quien lo pide es `supervisor`.
 4. **Endpoints en `TicketTransitionsController`:**
    - `GET /api/tickets/:id/transitions` → `200` con `[{ to, requiresAssignee }]`, las transiciones disponibles para el usuario actual.
-   - `POST /api/tickets/:id/transitions` con `{ to, assigneeId? }` → `200` con el ticket actualizado.
+   - `POST /api/tickets/:id/transitions` con `{ to, expectedRevision, assigneeId? }` → `200` con el ticket actualizado.
    - Errores: `401` sin sesión, `404` si el ticket no existe o no es visible, `403` si el rol no permite la transición, `422` si la transición no existe o el cuerpo no es válido (formato de error de VineJS), `409` si el ticket cambió mientras tanto.
-5. **Concurrencia:** el `UPDATE` incluye el estado de origen (`WHERE id = ? AND status = ?`). Si no actualiza ninguna fila, se responde `409 Conflict`.
+5. **Concurrencia:** el detalle devuelve `workflowRevision`. La escritura compara `expectedRevision` e incrementa la revisión, también cuando solo cambia el asignado. Si la revisión es anterior se responde `409 Conflict`.
 6. **Documentación:** comentarios `@summary`, `@requestBody` y `@responseBody` (incluidos `403`, `409` y `422`) para `adonis-autoswagger`, y TSDoc en los métodos públicos del servicio.
 
 **Criterios de aceptación:**
 
 - Todas las filas de la tabla de transiciones funcionan para los actores permitidos. Los rechazos por visibilidad, permiso o transición inválida devuelven `404`, `403` o `422`, respectivamente, sin modificar el ticket.
 - Cuando un operador solicita una transición sobre el ticket de otro operador, la API devuelve `404` por la regla de visibilidad. Un supervisor puede consultarlo y aplicar las transiciones que permita su estado.
-- Al asignar, el assignee debe ser un usuario activo con rol `agent` o `supervisor`. Si no, `422`.
-- Cada transición correcta crea exactamente un evento `status_changed` (y uno `assigned` si cambia el assignee) con actor, valor anterior y nuevo.
+- Al asignar, el assignee debe ser un usuario activo con rol `agent`. Si no, `422`.
+- Se registra `status_changed` cuando cambia el estado y `assigned` cuando cambia el asignado, con actor, valor anterior y nuevo. Una reasignación que conserva el estado solo registra `assigned`.
 - `solved_at` se rellena al pasar a `solved`; `closed_at`, al pasar a `closed` o `canceled`.
 - Dos peticiones simultáneas sobre el mismo ticket: una devuelve `200` y la otra `409`.
 
