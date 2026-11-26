@@ -254,3 +254,9 @@ Durante la revisión, el autor confirmó el camino feliz y el máximo de 200 car
 **Esquema inicial (PED-15).** Codex consultó Context7 para contrastar migraciones, transacciones y seeders de Lucid. Aplicó SQL de PostgreSQL para la identidad, los enums y la columna de prioridad generada, y preparó pruebas de restricciones sobre PostgreSQL aislado. El tipado detectó un error en el orden de las llamadas de las pruebas parametrizadas de Japa. Codex lo corrigió tras consultar la documentación del runner.
 
 La verificación aplicó, revirtió y volvió a aplicar las cinco migraciones. Ejecutó el seeder dos veces y comprobó que se mantenían las seis cuentas y los 21 tickets. La suite confirmó también que Lucid refresca la prioridad dentro de la transacción. Pasaron Biome, TypeScript y las 20 pruebas de Japa y Vitest.
+
+**Especificación de autenticación (PED-66).** El autor autorizó arrancar HU-00 y abrir su primera rama. Codex desglosó la historia en Linear, trasladó el inicio de sesión desde el diagrama de arquitectura y preparó los escenarios de sesión, cuenta inactiva y CSRF. La validación estricta de OpenSpec pasó. Quedó pendiente la revisión del autor y la comprobación de que el almacén de sesiones permita revocar una cookie anterior al cierre.
+
+El autor pidió separar la historia, los escenarios funcionales, el contrato HTTP y el diseño, y revisar su consistencia. Codex añadió la historia al README, enlazó sus tres criterios con las otras vistas y dejó la comprobación de trazabilidad en el flujo de trabajo del proyecto.
+
+El autor aprobó el recorrido y los supuestos del contrato al pedir el commit de PED-66.

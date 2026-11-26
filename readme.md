@@ -1052,6 +1052,26 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 
 ---
 
+#### HU-00 · Autenticación y roles
+
+**Como** persona con una cuenta activa,
+**quiero** iniciar y cerrar sesión en Requesto,
+**para** acceder con los permisos de mi rol y terminar mi acceso al salir.
+
+**Épica** E1 · **Prioridad** Must · **Estimación** 3 SP.
+
+| Criterio | Dado | Cuando | Entonces |
+|---|---|---|---|
+| CA-1 · Acceso | Tengo una cuenta activa. | Introduzco mi email y contraseña correctos. | Accedo con los permisos de mi rol. |
+| CA-2 · Continuidad | Mi sesión sigue siendo válida y mi cuenta está activa. | Vuelvo a cargar Requesto. | Conservo el acceso con los permisos de mi rol actual. |
+| CA-3 · Salida | He iniciado sesión. | Cierro sesión y vuelvo a intentar acceder. | Requesto me pide identificarme de nuevo. |
+
+**Fuera de alcance**. Alta de usuarios, recuperación de contraseña, SSO, administración de cuentas y políticas específicas de tickets.
+
+**Contexto técnico**. Depende de las cuentas de PED-15. El [change de OpenSpec](openspec/changes/authenticate-users/proposal.md) enlaza el contrato HTTP y el diseño. El seguimiento está en [PED-8](https://linear.app/pedrolaralara/issue/PED-8).
+
+---
+
 **Historia de Usuario 1**
 
 #### HU-01 · Crear un ticket
