@@ -24,6 +24,7 @@ export interface TicketDetail {
   title: string
   description: string
   status: string
+  workflowRevision: number
   urgency: number
   impact: number
   priority: number

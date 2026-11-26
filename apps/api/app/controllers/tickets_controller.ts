@@ -1,46 +1,19 @@
 import { Bouncer } from '@adonisjs/bouncer'
 import type { HttpContext } from '@adonisjs/core/http'
 import { createTicketAbility } from '#abilities/create_ticket'
-import type Ticket from '#models/ticket'
-import type User from '#models/user'
 import { createTicket } from '#services/create_ticket'
 import { viewTicket } from '#services/view_ticket'
 import { createTicketValidator, unknownTicketFields } from '#validators/create_ticket'
 import type { CreatedTicket } from '../interfaces/created_ticket.js'
-
-import type { TicketDetail } from '../interfaces/ticket_detail.js'
-
-function ticketFields(ticket: Ticket) {
-  return {
-    id: ticket.id,
-    key: `REQ-${ticket.id}`,
-    type: ticket.type,
-    title: ticket.title,
-    description: ticket.description,
-    status: ticket.status,
-    urgency: ticket.urgency,
-    impact: ticket.impact,
-    priority: ticket.priority,
-    createdAt: ticket.createdAt.toJSDate().toISOString(),
-    updatedAt: ticket.updatedAt.toJSDate().toISOString(),
-  }
-}
-
-function userSummary(user: User) {
-  return { id: user.id, fullName: user.fullName }
-}
-
-async function activeUser(auth: HttpContext['auth']) {
-  const guard = auth.use('web')
-  return (await guard.check()) && guard.user?.isActive ? guard.user : null
-}
-
-function unauthenticated(response: HttpContext['response']) {
-  return response.unauthorized({
-    code: 'UNAUTHENTICATED',
-    message: 'Inicia sesión para continuar.',
-  })
-}
+import {
+  activeUser,
+  serializeTicketDetail,
+  ticketFields,
+  ticketNotFound,
+  unauthenticated,
+  userSummary,
+  validTicketId,
+} from './ticket_http.js'
 
 export default class TicketsController {
   /**
@@ -98,38 +71,9 @@ export default class TicketsController {
     if (!viewer) return unauthenticated(response)
 
     const id: string = params.id
-    const maxId = '9223372036854775807'
-    const validId = /^[1-9][0-9]{0,18}$/.test(id) && (id.length < maxId.length || id <= maxId)
-    const ticket = validId ? await viewTicket(id, viewer) : null
-    if (!ticket) {
-      return response.notFound({
-        code: 'TICKET_NOT_FOUND',
-        message: 'El ticket no está disponible.',
-      })
-    }
+    const ticket = validTicketId(id) ? await viewTicket(id, viewer) : null
+    if (!ticket) return ticketNotFound(response)
 
-    const detail: TicketDetail = {
-      ...ticketFields(ticket),
-      reporter: userSummary(ticket.reporter),
-      assignee: ticket.assignee ? userSummary(ticket.assignee) : null,
-      solvedAt: ticket.solvedAt?.toJSDate().toISOString() ?? null,
-      closedAt: ticket.closedAt?.toJSDate().toISOString() ?? null,
-      comments: ticket.comments.map((comment) => ({
-        id: comment.id,
-        body: comment.body,
-        author: userSummary(comment.author),
-        createdAt: comment.createdAt.toJSDate().toISOString(),
-      })),
-      history: ticket.events.map((event) => ({
-        id: event.id,
-        eventType: event.eventType,
-        actor: userSummary(event.actor),
-        field: event.field,
-        oldValue: event.oldValue,
-        newValue: event.newValue,
-        createdAt: event.createdAt.toJSDate().toISOString(),
-      })),
-    }
-    return detail
+    return serializeTicketDetail(ticket)
   }
 }

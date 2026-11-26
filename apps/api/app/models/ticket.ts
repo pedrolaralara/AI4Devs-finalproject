@@ -23,6 +23,9 @@ export default class Ticket extends BaseModel {
   declare status: TicketStatus
 
   @column()
+  declare workflowRevision: number
+
+  @column()
   declare urgency: number
 
   @column()

@@ -477,6 +477,7 @@ erDiagram
         smallint urgency "NOT NULL, CHECK 1-5"
         smallint impact "NOT NULL, CHECK 1-5"
         smallint priority "GENERATED: ceil(urgency*impact/5)"
+        integer workflow_revision "NOT NULL, DEFAULT 0"
         bigint reporter_id FK "NOT NULL -> users.id"
         bigint assignee_id FK "NULL -> users.id"
         timestamptz solved_at "NULL"
@@ -550,6 +551,7 @@ Una sola tabla para los tres roles. El rol determina qué puede hacer cada perso
 | `assignee_id` | `bigint` | FK → `users.id`, NULL, `ON DELETE RESTRICT` | Operador asignado. |
 | `solved_at` | `timestamptz` | NULL | Momento en que pasó a `solved` (para métricas de resolución). |
 | `closed_at` | `timestamptz` | NULL | Momento en que pasó a `closed` o `canceled`. |
+| `workflow_revision` | `integer` | NOT NULL, DEFAULT 0, CHECK ≥ 0 | Versión de estado y asignación que se compara al ejecutar una transición. |
 | `created_at`, `updated_at` | `timestamptz` | NOT NULL | Fecha de creación y de última modificación. |
 
 **Restricciones adicionales:**

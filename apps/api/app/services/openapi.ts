@@ -178,6 +178,7 @@ export async function generateOpenApi() {
     },
     solvedAt: { ...dates, nullable: true },
     closedAt: { ...dates, nullable: true },
+    workflowRevision: { type: 'integer', minimum: 0, example: 0 },
   })
   Object.assign(schemas.TicketComment.properties, {
     id: { type: 'string', pattern: '^[0-9]+$' },
@@ -193,7 +194,56 @@ export async function generateOpenApi() {
     createdAt: dates,
   })
   const detail = viewTicket.responses['200'].content?.['application/json']
-  if (detail) detail.example = { ...(created?.example as object), comments: [], history: [] }
+  if (detail) {
+    detail.example = {
+      ...(created?.example as object),
+      workflowRevision: 0,
+      comments: [],
+      history: [],
+    }
+  }
+
+  const transitionRoutes = paths['/api/tickets/{id}/transitions']
+  transitionRoutes.get.security = [{ sessionCookie: [] }]
+  const transition = transitionRoutes.post
+  transition.security = [{ sessionCookie: [] }]
+  const transitionBody = schemas.ticketTransitionValidator
+  normalizeRequiredFields(transitionBody)
+  Object.assign(transitionBody, { additionalProperties: false })
+  Object.assign(transitionBody.properties, {
+    to: { type: 'string', enum: ticketStatuses },
+    assigneeId: { type: 'string', pattern: '^[1-9][0-9]{0,18}$' },
+    expectedRevision: { type: 'integer', minimum: 0, maximum: 2147483647 },
+  })
+  if (transition.requestBody) {
+    transition.requestBody.required = true
+    transition.requestBody.content['application/json'].example = {
+      to: 'assigned',
+      expectedRevision: 0,
+    }
+  }
+  const transitionResult = transition.responses['200'].content?.['application/json']
+  if (transitionResult) {
+    transitionResult.example = {
+      ...(detail?.example as object),
+      status: 'in_progress',
+      workflowRevision: 2,
+    }
+  }
+  const transitionValidation = transition.responses['422'].content?.['application/json']
+  if (transitionValidation) {
+    Object.assign(transitionValidation, {
+      schema: {
+        oneOf: [
+          { $ref: '#/components/schemas/ValidationErrors' },
+          { $ref: '#/components/schemas/SessionError' },
+        ],
+      },
+    })
+  }
+  Object.assign(schemas.TicketTransitionOption.properties, {
+    to: { type: 'string', enum: ticketStatuses },
+  })
 
   // Publish only schemas referenced by a documented operation.
   const referenced = new Set(schemaReferences(paths))
