@@ -3,6 +3,7 @@ import db from '@adonisjs/lucid/services/db'
 
 const ApiDocsController = () => import('#controllers/api_docs_controller')
 const AuthController = () => import('#controllers/auth_controller')
+const TicketsController = () => import('#controllers/tickets_controller')
 
 router
   .group(() => {
@@ -12,6 +13,8 @@ router
     router.post('/logout', [AuthController, 'logout'])
   })
   .prefix('/api/auth')
+
+router.post('/api/tickets', [TicketsController, 'store'])
 
 router.get('/api/openapi.json', [ApiDocsController, 'spec'])
 router.get('/api/docs/scalar.js', [ApiDocsController, 'script'])

@@ -37,6 +37,26 @@ test('publishes the implemented session contract in OpenAPI', async ({ assert, c
   }
 })
 
+test('publishes the ticket creation contract in OpenAPI', async ({ assert, client }) => {
+  const response = await client.get('/api/openapi.json')
+  response.assertStatus(200)
+  const { paths, components } = response.body()
+  const operation = paths['/api/tickets'].post
+  const input = components.schemas.createTicketValidator
+  const created = components.schemas.CreatedTicket
+
+  assert.sameMembers(Object.keys(operation.responses), ['201', '401', '403', '422'])
+  assert.property(operation.responses['201'].headers, 'Location')
+  assert.deepEqual(operation.security, [{ sessionCookie: [] }])
+  assert.isTrue(operation.requestBody.required)
+  assert.isFalse(input.additionalProperties)
+  assert.sameMembers(input.required, ['title', 'description', 'urgency', 'impact'])
+  assert.equal(input.properties.title.maxLength, 200)
+  assert.equal(input.properties.urgency.type, 'integer')
+  assert.equal(created.properties.id.type, 'string')
+  assert.isTrue(created.properties.priority.readOnly)
+})
+
 test('serves the Scalar reference and its script from the API origin', async ({
   assert,
   client,

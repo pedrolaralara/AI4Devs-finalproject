@@ -41,6 +41,14 @@ function schemaReferences(value: unknown) {
   )
 }
 
+function normalizeRequiredFields(schema: Schema) {
+  schema.required = []
+  for (const [field, property] of Object.entries(schema.properties)) {
+    if (property.required) schema.required.push(field)
+    delete property.required
+  }
+}
+
 /** Generates the API description from registered routes and controller annotations. */
 export async function generateOpenApi() {
   const root = router.toJSON().root.map((route) => {
@@ -84,11 +92,7 @@ export async function generateOpenApi() {
     role: { type: 'string', enum: userRoles, example: profile.role },
   })
   const validator = schemas.loginValidator
-  validator.required = []
-  for (const [field, property] of Object.entries(validator.properties)) {
-    if (property.required) validator.required.push(field)
-    delete property.required
-  }
+  normalizeRequiredFields(validator)
   validator.properties.email.format = 'email'
   validator.properties.password.format = 'password'
   validator.example = credentials
@@ -108,6 +112,60 @@ export async function generateOpenApi() {
     sessionCookie: { type: 'apiKey', in: 'cookie', name: 'adonis-session' },
   }
   me.security = [{ sessionCookie: [] }]
+
+  const createTicket = paths['/api/tickets'].post
+  const ticketInput = schemas.createTicketValidator
+  normalizeRequiredFields(ticketInput)
+  Object.assign(ticketInput, { additionalProperties: false })
+  Object.assign(ticketInput.properties, {
+    urgency: { type: 'integer', minimum: 1, maximum: 5, example: 4 },
+    impact: { type: 'integer', minimum: 1, maximum: 5, example: 5 },
+  })
+  const ticketExample = {
+    title: 'Alta de acceso',
+    description: 'Necesito acceso a la herramienta interna.',
+    urgency: 4,
+    impact: 5,
+  }
+  ticketInput.example = ticketExample
+  if (createTicket.requestBody) {
+    createTicket.requestBody.required = true
+    createTicket.requestBody.content['application/json'].example = ticketExample
+  }
+  createTicket.security = [{ sessionCookie: [] }]
+  Object.assign(schemas.TicketReporter.properties.id, { pattern: '^[0-9]+$', example: '7' })
+  const dates = { type: 'string', format: 'date-time' }
+  Object.assign(schemas.CreatedTicket.properties, {
+    id: { type: 'string', pattern: '^[0-9]+$', example: '42' },
+    key: { type: 'string', example: 'REQ-42' },
+    type: { type: 'string', enum: ['request'] },
+    status: { type: 'string', enum: ['open'] },
+    urgency: { type: 'integer', minimum: 1, maximum: 5 },
+    impact: { type: 'integer', minimum: 1, maximum: 5 },
+    priority: { type: 'integer', minimum: 1, maximum: 5, readOnly: true },
+    assignee: { type: 'object', nullable: true, enum: [null] },
+    solvedAt: { ...dates, nullable: true, enum: [null] },
+    closedAt: { ...dates, nullable: true, enum: [null] },
+    createdAt: dates,
+    updatedAt: dates,
+  })
+  const created = createTicket.responses['201'].content?.['application/json']
+  if (created) {
+    created.example = {
+      ...ticketExample,
+      id: '42',
+      key: 'REQ-42',
+      type: 'request',
+      status: 'open',
+      priority: 4,
+      reporter: { id: '7', fullName: 'Cuenta de ejemplo' },
+      assignee: null,
+      solvedAt: null,
+      closedAt: null,
+      createdAt: '2026-11-26T10:00:00.000Z',
+      updatedAt: '2026-11-26T10:00:00.000Z',
+    }
+  }
 
   // Publish only schemas referenced by a documented operation.
   const referenced = new Set(schemaReferences(paths))

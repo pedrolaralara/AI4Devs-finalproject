@@ -403,12 +403,12 @@ Principios de diseño de datos:
 
 ## 9. API
 
-El contrato de diseño de tickets y el resumen de HU-00 están en la **sección 4 del `readme.md`**. AdonisJS publica el contrato implementado en `/api/openapi.json` y la referencia Scalar en `/docs`. El build genera el JSON con `adonis-autoswagger` y lo copia como artefacto. El navegador carga el script de Scalar desde el mismo origen.
+El contrato de diseño de tickets y el resumen de HU-00 están en la **sección 4 del `readme.md`**. AdonisJS publica el contrato implementado de sesión y creación de tickets en `/api/openapi.json` y la referencia Scalar en `/docs`. El build genera el JSON con `adonis-autoswagger` y lo copia como artefacto. El navegador carga el script de Scalar desde el mismo origen.
 
 Convenciones:
 - Rutas bajo `/api`, recursos en plural (`/tickets`) y acciones de flujo como subrecurso (`/tickets/:id/transitions`).
 - `GET /api/tickets/:id/transitions` devuelve los destinos permitidos para el usuario de la sesión y si cada transición requiere indicar un operador. Devuelve `200` con `[]` si el ticket es visible y el usuario no tiene transiciones disponibles.
-- JSON con claves en *camelCase*.
+- JSON con claves en *camelCase*. Los identificadores de ticket y usuario se representan como cadenas decimales para conservar la precisión de PostgreSQL.
 - Códigos: `200`/`201` éxito, `401` sin sesión, `403` sin permiso, `404` no existe o no es visible, `409` conflicto de concurrencia, `422` validación o transición inválida.
 - Errores de validación en formato VineJS (`{ errors: [{ field, rule, message }] }`); errores de negocio como `{ code, message }`.
 - Listados paginados con `{ meta, data }`, filtros por query string y orden con `sort` (`-` para descendente).

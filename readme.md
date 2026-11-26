@@ -611,7 +611,7 @@ El seeder de desarrollo crea seis cuentas sintéticas: `supervisor@requesto.test
 
 El contrato cubre la **creación de tickets** (HU-01), el **listado con filtros** (HU-02 y HU-05) y la **consulta y ejecución de transiciones** (HU-04 y HU-05).
 
-La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra con Scalar en `/docs`. En desarrollo se puede abrir en `http://localhost:5173/docs`. El documento describe actualmente HU-00 y se genera con `adonis-autoswagger` a partir de las rutas, validadores y comentarios de los controladores. El build de la API incluye el JSON generado y sirve Scalar desde una dependencia npm local.
+La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra con Scalar en `/docs`. En desarrollo se puede abrir en `http://localhost:5173/docs`. El documento describe actualmente HU-00 y la creación de tickets de HU-01 y se genera con `adonis-autoswagger` a partir de las rutas, validadores y comentarios de los controladores. El build de la API incluye el JSON generado y sirve Scalar desde una dependencia npm local.
 
 | Operación de HU-00 | Respuesta |
 |---|---|
@@ -623,7 +623,7 @@ La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra 
 El YAML de esta sección conserva el **contrato de diseño de tickets** de la entrega 1.
 
 **Convenciones comunes:**
-- Todas las rutas van bajo `/api` y usan JSON con claves en *camelCase*.
+- Todas las rutas van bajo `/api` y usan JSON con claves en *camelCase*. Los identificadores de usuario y ticket se representan como cadenas decimales para conservar la precisión de PostgreSQL.
 - **Autenticación por sesión:** cookie `HttpOnly` obtenida en el login (ver [ADR](docs/adr/20260924-autenticacion-por-sesion-con-cookie.md)). Las rutas que requieren acceso devuelven `401` cuando falta una sesión válida.
 - **CSRF:** las peticiones que modifican datos (`POST`) envían la cabecera `X-XSRF-TOKEN` con el valor de la cookie `XSRF-TOKEN`.
 - **Errores de validación (`422`):** siguen el formato de VineJS, con una lista `errors` de `{ field, rule, message }`. Los errores de negocio usan `{ code, message }`.
@@ -674,7 +674,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Ticket'
               example:
-                id: 42
+                id: "42"
                 key: REQ-42
                 type: request
                 title: Alta de acceso a la VPN para un nuevo empleado
@@ -683,7 +683,7 @@ paths:
                 urgency: 4
                 impact: 3
                 priority: 3
-                reporter: { id: 12, fullName: Laura Martín }
+                reporter: { id: "12", fullName: Laura Martín }
                 assignee: null
                 solvedAt: null
                 closedAt: null
@@ -744,7 +744,7 @@ paths:
               example:
                 meta: { total: 57, perPage: 25, currentPage: 1, lastPage: 3 }
                 data:
-                  - id: 42
+                  - id: "42"
                     key: REQ-42
                     type: request
                     title: Alta de acceso a la VPN para un nuevo empleado
@@ -753,8 +753,8 @@ paths:
                     urgency: 4
                     impact: 5
                     priority: 4
-                    reporter: { id: 12, fullName: Laura Martín }
-                    assignee: { id: 7, fullName: Carlos Ruiz }
+                    reporter: { id: "12", fullName: Laura Martín }
+                    assignee: { id: "7", fullName: Carlos Ruiz }
                     solvedAt: null
                     closedAt: null
                     createdAt: '2026-10-05T09:14:03Z'
@@ -816,7 +816,7 @@ paths:
                 value: { to: solved }
               asignar:
                 summary: Un supervisor asigna el ticket a un operador
-                value: { to: assigned, assigneeId: 7 }
+                value: { to: assigned, assigneeId: "7" }
       responses:
         '200':
           description: Transición aplicada. Devuelve el ticket actualizado.
@@ -867,7 +867,7 @@ components:
       name: id
       in: path
       required: true
-      schema: { type: integer, minimum: 1, example: 42 }
+      schema: { type: string, pattern: '^[0-9]+$', example: "42" }
     XsrfToken:
       name: X-XSRF-TOKEN
       in: header
@@ -884,7 +884,7 @@ components:
       type: object
       required: [id, fullName]
       properties:
-        id: { type: integer, example: 7 }
+        id: { type: string, pattern: '^[0-9]+$', example: "7" }
         fullName: { type: string, example: Carlos Ruiz }
 
     CreateTicketRequest:
@@ -904,7 +904,8 @@ components:
       properties:
         to: { $ref: '#/components/schemas/TicketStatus' }
         assigneeId:
-          type: integer
+          type: string
+          pattern: '^[0-9]+$'
           description: >
             Operador al que se asigna el ticket. Obligatorio si `to` es `assigned`
             y quien lo pide es un supervisor. Un operador solo puede asignárselo
@@ -915,7 +916,7 @@ components:
       type: object
       required: [id, key, type, title, description, status, urgency, impact, priority, reporter, createdAt, updatedAt]
       properties:
-        id: { type: integer }
+        id: { type: string, pattern: '^[0-9]+$' }
         key: { type: string, description: 'Identificador visible, `REQ-<id>`.', example: REQ-42 }
         type: { type: string, enum: [request] }
         title: { type: string }
