@@ -107,7 +107,7 @@ El flujo principal es `Open → Assigned → In progress → Solved → Closed`.
 
 | Acción | Usuario | Operador | Supervisor |
 |--------|:-------:|:--------:|:--------:|
-| Abrir un ticket | ✅ | | |
+| Abrir un ticket | ✅ | | ✅ |
 | Comentar en un ticket | ✅ | ✅ | ✅ |
 | Asignarse un ticket | | ✅ | ✅ |
 | Asignar un ticket a otro operador | | | ✅ |
@@ -612,8 +612,8 @@ paths:
       tags: [Tickets]
       summary: Crear un ticket
       description: >
-        Crea un ticket de tipo `request` en estado `open`. Solo pueden crearlo
-        los usuarios con rol `requester`. El reporter es el usuario de la sesión,
+        Crea un ticket de tipo `request` en estado `open`. Pueden crearlo
+        los usuarios con rol `requester` o `supervisor`. El reporter es el usuario de la sesión,
         y la prioridad se calcula a partir de la urgencia y el impacto.
       operationId: createTicket
       parameters:
@@ -952,7 +952,7 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
-          example: { code: FORBIDDEN, message: Solo los usuarios con rol requester pueden abrir tickets. }
+          example: { code: FORBIDDEN, message: Solo los peticionarios y supervisores pueden abrir tickets. }
     NotFound:
       description: El ticket no existe o el usuario no puede verlo.
       content:
@@ -1052,7 +1052,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 **Criterios de aceptación:**
 
 1. **Creación correcta**
-   - **Dado** que soy un usuario autenticado,
+   - **Dado** que soy un peticionario o supervisor autenticado,
    - **cuando** relleno título, descripción, urgencia e impacto y envío el formulario,
    - **entonces** se crea un ticket de tipo `Request` en estado `Open`, sin assignee, con mi usuario como reporter y la fecha de creación actual, y veo su detalle con el identificador `REQ-<id>`.
 2. **Prioridad calculada**
@@ -1061,16 +1061,16 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
    - **entonces** su prioridad es `ceil(4 × 5 / 5) = 4`, y no se puede introducir a mano.
 3. **Validación de campos**
    - **Dado** el formulario de creación,
-   - **cuando** dejo vacío el título o la descripción, el título supera 200 caracteres **(asumido)**, o la urgencia o el impacto están fuera de 1-5,
+   - **cuando** dejo vacío el título o la descripción, el título supera 200 caracteres, o la urgencia o el impacto están fuera de 1-5,
    - **entonces** el ticket no se crea y veo un mensaje de error junto a cada campo inválido. El backend aplica la misma validación y responde `422`.
 4. **Historial**
    - **Dado** que se ha creado un ticket,
    - **cuando** consulto su historial,
    - **entonces** aparece un evento `created` con mi usuario como autor.
-5. **Permisos (asumido)**
-   - **Dado** que soy operador o supervisor,
+5. **Permisos**
+   - **Dado** que soy operador,
    - **cuando** intento crear un ticket desde la API,
-   - **entonces** recibo `403` (solo los usuarios abren tickets).
+   - **entonces** recibo `403` y el ticket no se crea.
 
 **Fuera de alcance:**
 - Adjuntar ficheros al ticket.

@@ -73,7 +73,7 @@ El MVP permite crear, consultar, actualizar y cancelar tickets. Cuando un ticket
 |-------|--------------|
 | Id | Identificador numérico automático. Se muestra como `REQ-<id>`. |
 | Tipo | `Request` (fijo). |
-| Título | Texto, obligatorio, máximo 200 caracteres **(asumido: límite)**. |
+| Título | Texto, obligatorio, máximo 200 caracteres. |
 | Descripción | Texto largo, obligatorio. |
 | Reporter | Usuario que abre el ticket. Automático. |
 | Assignee | Operador asignado. Vacío hasta que se asigna; obligatorio a partir de `Assigned`. |
@@ -137,7 +137,7 @@ Flujo principal: `Open → Assigned → In progress → Solved → Closed`. Esta
 
 | Acción | Usuario | Operador | Supervisor |
 |--------|:-------:|:--------:|:----------:|
-| Abrir un ticket | ✅ | ❌ **(asumido)** | ❌ **(asumido)** |
+| Abrir un ticket | ✅ | ❌ | ✅ |
 | Comentar en un ticket **(asumido)** | ✅ | ✅ | ✅ |
 | Asignarse un ticket | | ✅ | ✅ |
 | Asignar un ticket a otro operador | | | ✅ |

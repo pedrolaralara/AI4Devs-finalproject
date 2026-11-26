@@ -23,8 +23,8 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 |-------------|--------|-----------------|
 | **Claude Code** (CLI, en el terminal) | Claude Opus 5.5 | Toda la entrega 1: contexto del proyecto, digitalización de notas, PRD, redacción del `readme.md`, ADRs, revisión contra el temario y operaciones de git (commits y push). |
 | **Claude in Chrome** (extensión de navegador) | El mismo agente, a través de Claude Code | Leer el enunciado del proyecto final y las lecciones de los módulos 4 y 5 del máster en la plataforma de LIDR, que requiere sesión iniciada. El login lo hizo el autor; el agente solo leyó el contenido. |
-
-Un único modelo para toda la fase de especificación: en esta entrega no hay código, así que no se separó un modelo para especificar y otro para programar. Para las entregas 2 y 3 está previsto añadir **Context7 MCP** para que el agente consulte la documentación actual de AdonisJS 7.
+| **Codex** | GPT-6.2 Sol en las consultas a Context7 ejecutadas con la CLI | Retomar el proyecto tras la primera entrega, gestionar las tareas en Linear, montar el entorno y verificar la API y la web. |
+| **Context7 MCP** | Herramienta de consulta documental | Consultar documentación de AdonisJS 7, React 19 y Lucid durante el montaje. El autor autorizó el acceso y Codex lo verificó con una consulta real. |
 
 ### Contexto, reglas y skills
 
@@ -39,6 +39,8 @@ Un único modelo para toda la fase de especificación: en esta entrega no hay c�
 2. **Requisitos desde notas manuscritas.** El autor escribió el PRD a mano; la IA lo transcribió desde la imagen, detectó huecos (flujo de estados, permisos, asignación) y preguntó por ellos antes de seguir.
 3. **Sección a sección.** El `readme.md` se redactó en orden (0 → 1 → 2 → 3 → 5 → 6 → 4). En cada paso la IA listaba explícitamente los **supuestos** que había tomado para que el autor los validara, y se hacía commit al cerrar cada bloque.
 4. **Auditoría contra el temario.** Con la documentación ya escrita, se pidió a la IA que leyera los módulos 5 (documentación) y 4 (planificación) del máster, comparara con lo hecho y propusiera correcciones. De ahí salieron los ADRs, los diagramas C4 y de secuencia, las épicas, el plan por entregas, los criterios marcados como "(asumido)", los non-goals y la DoD por tipo de trabajo.
+
+**Entrega 2.** El autor pidió desglosar cada historia o tarea en subtareas de Linear antes de empezar y trabajar en una rama identificada por issue. Codex ejecuta las comprobaciones y presenta el resultado. El autor valida el bloque antes del commit. Para mantener la versión acordada de Node sin cambiar la instalación del Mac, el autor pidió ejecutar Node 24 en Docker.
 
 ### Ajustes humanos sobre lo que generó la IA
 
@@ -234,3 +236,7 @@ El autor aprobó los controles de configuración propuestos por Codex para el AD
 **Conexión con PostgreSQL (PED-39).** Codex consultó en Context7 la configuración de Lucid y su API de consulta. Añadió PostgreSQL al Compose de desarrollo y usó `SELECT 1` en el endpoint de salud para verificar la conexión desde AdonisJS a través del proxy de Vite.
 
 **Entorno de pruebas (PED-41).** Codex preparó un Compose independiente con PostgreSQL temporal. Añadió una prueba de Japa que verifica la base activa y la respuesta del endpoint de salud, y dos pruebas de Vitest que comprueban qué muestra la pantalla cuando la API responde o no está disponible.
+
+**Primer change de OpenSpec (PED-42).** El autor pidió mantener el registro de IA al día y seguir con HU-01. Codex preparó la propuesta, el diseño, la especificación y las tareas a partir del PRD y los criterios del README. La IA trasladó el camino feliz existente y dejó pendientes de validación humana el máximo de 200 caracteres y la política de creación por rol. El ciclo de TDD se documentará cuando se ejecute en PED-26.
+
+Durante la revisión, el autor confirmó el camino feliz y el máximo de 200 caracteres. Corrigió el supuesto de permisos para permitir la creación tanto a peticionarios como a supervisores. Codex trasladó la decisión al PRD, el README y el change.

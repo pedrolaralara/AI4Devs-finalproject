@@ -37,7 +37,7 @@ No es un clon genérico de JSM: no hay tipos de issue, formularios ni workflows 
 |-----|-------------------------|------------------------|
 | Usuario | `requester` | Peticionario. Abre, cancela y cierra tickets. |
 | Agente (operador) | `agent` | Atiende los tickets. Se asigna tickets y los pasa a *In progress*, *Pending user*, *Canceled* y *Solved*. |
-| Supervisor | `supervisor` | Todo lo del agente y, además, asigna tickets a un agente. También revisa la información de los tickets. |
+| Supervisor | `supervisor` | Todo lo del agente y, además, abre tickets propios y asigna tickets a un agente. También revisa la información de los tickets. |
 
 En código se usa `requester` en lugar de `user` para no confundir el rol con la entidad `User`, que representa a cualquier persona con cuenta (sea cual sea su rol). En el ticket, el `reporter` es el usuario que lo abrió y el `assignee` el agente asignado.
 
