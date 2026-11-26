@@ -199,7 +199,7 @@ docker compose -f compose.test.yml up --abort-on-container-exit --exit-code-from
 
 Este comando instala las dependencias desde el lockfile y propaga el código de salida de las pruebas. La suite de Japa usa `requesto_test`, una instancia de PostgreSQL con almacenamiento temporal separada de desarrollo. Vitest prueba la web con Testing Library y simula la respuesta HTTP. Puedes retirar los contenedores detenidos con `docker compose -f compose.test.yml down`.
 
-Para ejecutar el E2E de autenticación con Chromium, usa un proyecto Compose separado:
+Para ejecutar los E2E de autenticación y creación de tickets con Chromium, usa un proyecto Compose separado:
 
 ```bash
 docker compose -p requesto-e2e -f compose.dev.yml -f compose.e2e.yml run --rm -T node npm ci
@@ -1135,7 +1135,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 **Notas (contexto técnico):**
 - Campos del formulario: título (obligatorio, máximo 200 caracteres), descripción (obligatoria), urgencia (1-5) e impacto (1-5), con una breve explicación de cada nivel.
 - Mientras se rellenan urgencia e impacto, el formulario muestra la prioridad resultante como vista previa. La fuente de verdad es la columna generada en PostgreSQL (ver [ADR](docs/adr/20260924-prioridad-como-columna-generada.md)).
-- Tras crear un ticket, React Router abre `/tickets/:id` con el resumen devuelto por la API. La consulta persistente del detalle corresponde a HU-03.
+- Tras crear un ticket, React Router abre `/tickets/:id` con el resumen devuelto por la API. La consulta persistente del detalle y del historial corresponde a HU-03. La [matriz de HU-01](openspec/changes/create-request-ticket/proposal.md#trazabilidad) enlaza criterios, contrato y pruebas.
 - Tickets de trabajo relacionados: REQ-DB-01.
 
 ---

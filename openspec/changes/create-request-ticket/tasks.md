@@ -8,4 +8,4 @@
 - [x] 2.1 Comprobar que están disponibles la sesión de HU-00 y el esquema de PED-15. Escribir y ejecutar el primer caso rojo en Japa (PED-77).
 - [x] 2.2 Implementar validación, autorización y persistencia transaccional del ticket y su evento. Verificar `201` para peticionario y supervisor, `401` sin sesión, `403` para operador o CSRF inválido y `422` para datos inválidos. Comprobar el rollback y el OpenAPI generado (PED-78).
 - [x] 2.3 Implementar el formulario, la vista previa de prioridad, los errores y la navegación al resumen del ticket creado. Verificar con Vitest (PED-79).
-- [ ] 2.4 Actualizar la documentación de la API y verificar con Biome, TypeScript, Japa y Vitest. Registrar la evidencia de TDD en `prompts.md`.
+- [x] 2.4 Revisar la trazabilidad y verificar con Biome, TypeScript, Japa, Vitest y Playwright. Registrar la evidencia de TDD en `prompts.md` (PED-80).
