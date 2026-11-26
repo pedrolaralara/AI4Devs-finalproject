@@ -1135,6 +1135,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 **Notas (contexto técnico):**
 - Campos del formulario: título (obligatorio, máximo 200 caracteres), descripción (obligatoria), urgencia (1-5) e impacto (1-5), con una breve explicación de cada nivel.
 - Mientras se rellenan urgencia e impacto, el formulario muestra la prioridad resultante como vista previa. La fuente de verdad es la columna generada en PostgreSQL (ver [ADR](docs/adr/20260924-prioridad-como-columna-generada.md)).
+- Tras crear un ticket, React Router abre `/tickets/:id` con el resumen devuelto por la API. La consulta persistente del detalle corresponde a HU-03.
 - Tickets de trabajo relacionados: REQ-DB-01.
 
 ---

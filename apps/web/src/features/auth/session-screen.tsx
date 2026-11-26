@@ -1,4 +1,8 @@
 import { type SubmitEvent, useEffect, useState } from 'react'
+import { Link, Navigate, Route, Routes, useNavigate } from 'react-router'
+import { CreateTicketForm } from '../tickets/create-ticket-form'
+import { CreatedTicketDetail } from '../tickets/created-ticket-detail'
+import type { CreatedTicket } from '../tickets/ticket-api'
 import { getSession, login, logout, type SessionProfile, SessionRequestError } from './session-api'
 
 const roleLabels: Record<SessionProfile['role'], string> = {
@@ -8,7 +12,9 @@ const roleLabels: Record<SessionProfile['role'], string> = {
 }
 
 export function SessionScreen() {
+  const navigate = useNavigate()
   const [profile, setProfile] = useState<SessionProfile | null>()
+  const [createdTicket, setCreatedTicket] = useState<CreatedTicket>()
   const [restoreFailed, setRestoreFailed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -52,6 +58,8 @@ export function SessionScreen() {
     try {
       await logout()
       setProfile(null)
+      setCreatedTicket(undefined)
+      void navigate('/', { replace: true })
     } catch {
       setError('No se pudo cerrar sesión. Inténtalo de nuevo.')
     } finally {
@@ -73,15 +81,52 @@ export function SessionScreen() {
   if (profile === undefined) return <p role="status">Comprobando la sesión…</p>
 
   if (profile) {
+    const canCreate = profile.role === 'requester' || profile.role === 'supervisor'
     return (
-      <section aria-labelledby="session-title">
-        <h2 id="session-title">{profile.fullName}</h2>
-        <p>{roleLabels[profile.role]}</p>
-        {error && <p role="alert">{error}</p>}
-        <button type="button" disabled={busy} onClick={signOut}>
-          {busy ? 'Cerrando sesión…' : 'Cerrar sesión'}
-        </button>
-      </section>
+      <>
+        <section aria-labelledby="session-title">
+          <h2 id="session-title">{profile.fullName}</h2>
+          <p>{roleLabels[profile.role]}</p>
+          {error && <p role="alert">{error}</p>}
+          <button type="button" disabled={busy} onClick={signOut}>
+            {busy ? 'Cerrando sesión…' : 'Cerrar sesión'}
+          </button>
+        </section>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              canCreate && (
+                <p>
+                  <Link to="/tickets/new">Crear ticket</Link>
+                </p>
+              )
+            }
+          />
+          <Route
+            path="/tickets/new"
+            element={
+              canCreate ? (
+                <CreateTicketForm
+                  onCreated={(ticket) => {
+                    setCreatedTicket(ticket)
+                    void navigate(`/tickets/${ticket.id}`, { replace: true })
+                  }}
+                  onExpired={() => {
+                    setCreatedTicket(undefined)
+                    setProfile(null)
+                    setError('La sesión ha caducado. Vuelve a iniciar sesión.')
+                  }}
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route path="/tickets/:id" element={<CreatedTicketDetail ticket={createdTicket} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </>
     )
   }
 

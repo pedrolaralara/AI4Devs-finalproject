@@ -16,7 +16,7 @@ export async function getSession(signal: AbortSignal): Promise<SessionProfile | 
   return response.json()
 }
 
-async function getCsrfToken() {
+export async function getCsrfToken() {
   const response = await fetch('/api/auth/csrf', { cache: 'no-store' })
   if (!response.ok) throw new SessionRequestError(connectionError)
 

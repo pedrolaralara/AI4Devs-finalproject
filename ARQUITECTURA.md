@@ -301,15 +301,17 @@ sequenceDiagram
     U->>SPA: Rellena título, descripción, urgencia e impacto
     SPA->>SPA: Muestra la prioridad resultante (vista previa)
     SPA->>API: POST /api/tickets
-    API->>API: Valida (VineJS) y autoriza (rol requester)
+    API->>API: Autoriza a peticionario o supervisor (Bouncer) y valida (VineJS)
     API->>DB: BEGIN
     API->>DB: INSERT tickets (status = open, reporter = usuario)
     Note right of DB: priority la calcula PostgreSQL<br/>(columna generada)
     API->>DB: INSERT ticket_events (created)
     API->>DB: COMMIT
     API-->>SPA: 201 + ticket (con priority y key REQ-id)
-    SPA-->>U: Muestra el detalle del ticket
+    SPA-->>U: Abre el resumen del ticket creado con la prioridad guardada
 ```
+
+La SPA usa el resultado de la creación para abrir `/tickets/:id`. Ese resumen se conserva mientras la SPA está abierta. HU-03 incorporará la consulta del detalle desde la API al abrir una URL directa o recargar.
 
 ### 7.3 Cambiar el estado de un ticket
 

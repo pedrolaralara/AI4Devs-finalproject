@@ -39,6 +39,8 @@ label {
 }
 
 input,
+textarea,
+select,
 button {
   box-sizing: border-box;
   padding: 0.65rem 0.85rem;
@@ -46,10 +48,16 @@ button {
   font: inherit;
 }
 
-input {
+input,
+textarea,
+select {
   min-width: 0;
   border: 1px solid #73849a;
   margin-bottom: 0.55rem;
+}
+
+textarea {
+  resize: vertical;
 }
 
 button {

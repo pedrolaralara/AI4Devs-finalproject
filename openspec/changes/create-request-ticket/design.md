@@ -6,7 +6,7 @@ La SPA de React consume la API REST de AdonisJS. HU-01 depende de un usuario ide
 
 - Completar la creación desde el formulario hasta la persistencia y la navegación al detalle.
 - Mantener los controles de acceso y validación en el servidor.
-- Limitar el cambio a la creación y al uso del detalle existente. HU-03 define el detalle completo.
+- Mostrar un resumen inmediato con la respuesta de creación. HU-03 incorpora la consulta del detalle al abrir su URL directamente o recargar.
 
 ## Decisions
 
