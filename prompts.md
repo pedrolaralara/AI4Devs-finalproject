@@ -242,3 +242,11 @@ El autor aprobó los controles de configuración propuestos por Codex para el AD
 Durante la revisión, el autor confirmó el camino feliz y el máximo de 200 caracteres. Corrigió el supuesto de permisos para permitir la creación tanto a peticionarios como a supervisores. Codex trasladó la decisión al PRD, el README y el change.
 
 **Verificación desde una copia limpia (PED-43).** Codex reprodujo el README a partir del commit `008e710` con `git archive`. Usó un proyecto Docker separado y un puerto temporal para evitar interferencias con el entorno de desarrollo. Generó una clave local, comprobó en el navegador la conexión entre la web y la API y verificó `HTTP 200` en `/api/health` con PostgreSQL. Pasaron Biome, TypeScript, los dos builds y las tres pruebas de Japa y Vitest en su entorno aislado.
+
+**Visibilidad por rol (PED-59).** Codex propuso que el peticionario vea sus tickets, el operador los asignados a él y los `Open` sin asignar, y el supervisor todos. El autor confirmó la propuesta y su aplicación a la lista, el detalle, los comentarios, el historial y la consulta de transiciones disponibles. Codex incorporó la regla al PRD y al README.
+
+**Edición de campos (PED-60).** El autor confirmó la propuesta de Codex de que el reportero pueda editar título, descripción, urgencia e impacto mientras el ticket esté en `Open`, con recálculo automático de prioridad. Codex actualizó el PRD y el README.
+
+**Cancelación y retorno al trabajo (PED-61).** El autor confirmó los estados de origen de la cancelación y los actores autorizados. También confirmó que el retorno desde `Pending user` es manual y que `Solved` solo admite el cierre. Codex incorporó las decisiones al PRD y a los criterios de HU-04, y corrigió el ejemplo de acceso a un ticket no visible para indicar `404`.
+
+**Revisión de la matriz (PED-62).** Codex detectó que restringir el cierre al rol peticionario dejaría sin cierre propio los tickets de un supervisor. El autor confirmó que cierra el reportero, sea peticionario o supervisor, y que solo un supervisor puede reasignar en `Assigned`. Codex alineó el PRD y los criterios de HU-04 y dejó indicada la matriz de producto como referencia independiente para las pruebas MBT.

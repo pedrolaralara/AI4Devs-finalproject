@@ -502,7 +502,7 @@ Cada decisión nueva de peso se registra como ADR y se añade a esta tabla.
 |------------------------|---------|------------|
 | AdonisJS 7 es reciente y los modelos de IA la conocen poco. | Código generado para AdonisJS 6 que no funciona. | Context7 MCP y revisión humana ([`AGENTS.md`](AGENTS.md)). |
 | Proveedor LLM sin decidir; los modelos locales soportan peor el *tool calling*. | HU-06 puede crecer o no cumplir el requisito on-premise. | Interfaz de proveedor común; HU-06 es should-have. |
-| Reglas del flujo aún abiertas (salida de *Pending user*, reapertura, visibilidad, edición). | Cambios en la máquina de estados y en las políticas. | Tabla declarativa de transiciones: añadir una regla es añadir una fila y su test. |
+| Aplicación incoherente de las reglas de visibilidad y transición. | La lista, el detalle y las acciones pueden discrepar sobre los permisos. | Política de visibilidad común y pruebas basadas en la matriz del PRD. |
 | Un único servidor, sin redundancia. | Caída del servicio si falla el servidor. | Aceptado para el MVP; copias de seguridad de la base de datos. |
 | Escalado del listado con muchos tickets. | Lentitud en lista y Kanban. | Índices en los campos filtrados y paginación; búsqueda de texto completo si hace falta. |
 

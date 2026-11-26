@@ -125,15 +125,33 @@ Flujo principal: `Open → Assigned → In progress → Solved → Closed`. Esta
 | Desde | Hacia | Quién puede |
 |-------|-------|-------------|
 | `Open` | `Assigned` | Operador (a sí mismo); supervisor (a cualquier operador activo) |
-| `Assigned` | `Assigned` (reasignar) **(asumido)** | Supervisor |
+| `Assigned` | `Assigned` (reasignar) | Supervisor (cambia el asignado a un operador activo) |
 | `Assigned` | `In progress` | Operador asignado; supervisor |
 | `In progress` | `Pending user` | Operador asignado; supervisor |
 | `Pending user` | `In progress` | Operador asignado; supervisor |
 | `In progress` | `Solved` | Operador asignado; supervisor |
-| `Solved` | `Closed` | Usuario (reporter del ticket) |
-| `Open`, `Assigned`, `In progress`, `Pending user` **(asumido: estados de origen)** | `Canceled` | Usuario (reporter); operador asignado; supervisor |
+| `Solved` | `Closed` | Reportero del ticket (peticionario o supervisor) |
+| `Open`, `Assigned`, `In progress`, `Pending user` | `Canceled` | Reportero; operador asignado; supervisor |
+
+La vuelta de `Pending user` a `In progress` es manual y corresponde al operador asignado o al supervisor. El reportero puede responder mediante un comentario y el ticket permanece en `Pending user` hasta que se retome el trabajo.
+
+Desde `Solved` solo se puede pasar a `Closed`. Si hace falta retomar el asunto, se abre un ticket nuevo.
 
 ## 7. Roles y permisos
+
+### Visibilidad de tickets
+
+| Rol | Tickets que puede consultar |
+|-----|-----------------------------|
+| Peticionario (`requester`) | Los tickets que ha abierto, en cualquier estado. |
+| Operador (`agent`) | Los tickets que tiene asignados, en cualquier estado, y los tickets `Open` sin asignar. |
+| Supervisor (`supervisor`) | Todos los tickets. |
+
+La API aplica la misma regla a la lista, el detalle, los comentarios, el historial y la consulta de transiciones disponibles. Cada acción comprueba además sus propios permisos.
+
+### Edición de campos
+
+El reportero puede editar el título, la descripción, la urgencia y el impacto de su ticket mientras esté en `Open`. Esto se aplica también al supervisor cuando es el reportero. Al cambiar la urgencia o el impacto, la prioridad se recalcula automáticamente. El historial registra los cambios de campos.
 
 | Acción | Usuario | Operador | Supervisor |
 |--------|:-------:|:--------:|:----------:|
@@ -143,7 +161,7 @@ Flujo principal: `Open → Assigned → In progress → Solved → Closed`. Esta
 | Asignar un ticket a otro operador | | | ✅ |
 | Pasar a *In progress*, *Pending user* o *Solved* | | ✅ | ✅ |
 | Cancelar un ticket | ✅ (los suyos) | ✅ | ✅ |
-| Cerrar un ticket resuelto | ✅ (los suyos) | | |
+| Cerrar un ticket resuelto | ✅ (los suyos) | | ✅ (los suyos) |
 | Usar el Kanban **(asumido)** | ❌ (usa la lista) | ✅ | ✅ |
 | Consultar al agente de IA | | ✅ | ✅ |
 
@@ -173,10 +191,6 @@ El detalle está en la sección 2 del `readme.md` y las decisiones justificadas 
 
 ## 11. Puntos pendientes
 
-- **Pending user:** ¿lo vuelve a poner el operador en *In progress*, o pasa automáticamente cuando el usuario comenta?
-- **Reapertura:** ¿un ticket en *Solved* se puede reabrir si el usuario no está conforme?
-- **Visibilidad:** ¿el usuario ve solo sus tickets o todos?
-- **Edición:** ¿quién puede editar los campos del ticket (título, descripción, urgencia, impacto) y en qué estados?
 - **Dashboard:** ¿dashboard propio o generado por el agente de IA?
 - **Agente de IA:** ¿qué proveedor autoalojado y qué modelo se usarán en producción?
 - Confirmar los supuestos marcados **(asumido)** en este documento.

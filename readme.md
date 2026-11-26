@@ -103,6 +103,8 @@ stateDiagram-v2
 
 El flujo principal es `Open → Assigned → In progress → Solved → Closed`. Los estados alternativos son `Pending user` (el operador espera información del usuario) y `Canceled`. `Closed` y `Canceled` son estados finales.
 
+El operador asignado o un supervisor retoman manualmente un ticket en `Pending user`. Un comentario del reportero conserva ese estado. Desde `Solved` solo se permite el cierre. Si el asunto debe retomarse, se abre un ticket nuevo.
+
 #### Roles y permisos
 
 | Acción | Usuario | Operador | Supervisor |
@@ -113,9 +115,9 @@ El flujo principal es `Open → Assigned → In progress → Solved → Closed`.
 | Asignar un ticket a otro operador | | | ✅ |
 | Pasar a *In progress*, *Pending user* o *Solved* | | ✅ | ✅ |
 | Cancelar un ticket | ✅ | ✅ | ✅ |
-| Cerrar un ticket resuelto | ✅ | | |
+| Cerrar un ticket resuelto | ✅ (los suyos) | | ✅ (los suyos) |
 
-Las reglas finas de visibilidad y edición se detallarán en los requisitos. Por ejemplo, qué tickets ve cada rol o qué campos se pueden editar en cada estado.
+El peticionario consulta los tickets que ha abierto. El operador consulta los que tiene asignados y los `Open` sin asignar. El supervisor consulta todos. La regla se aplica a la lista, el detalle, los comentarios, el historial y la consulta de transiciones disponibles. El reportero puede editar título, descripción, urgencia e impacto mientras el ticket esté en `Open`. La prioridad se recalcula automáticamente si cambia la urgencia o el impacto. Véase [Roles y permisos en el PRD](PRD/PRD.md#7-roles-y-permisos).
 
 #### Funcionalidades
 
@@ -1000,7 +1002,7 @@ curl -X POST https://requesto.local/api/tickets/42/transitions \
 
 | Épica | Objetivo | Historias | Talla | Riesgos que pueden hacerla crecer |
 |-------|----------|-----------|-------|-----------------------------------|
-| **E1 · Ciclo de vida del ticket** | Que un ticket nazca, avance por el flujo con los permisos correctos y se pueda seguir en lista, detalle y Kanban. | HU-00 a HU-05 | L | Concurrencia en los cambios de estado; reglas de visibilidad aún por concretar en los requisitos. |
+| **E1 · Ciclo de vida del ticket** | Que un ticket nazca, avance por el flujo con los permisos correctos y se pueda seguir en lista, detalle y Kanban. | HU-00 a HU-05 | L | Concurrencia en los cambios de estado y aplicación coherente de los permisos. |
 | **E2 · Explotación de la información** | Que supervisores y operadores obtengan respuestas sobre los tickets sin construir informes a mano. | HU-06, HU-07 | M → L | Elección del proveedor LLM compatible con on-premise; calidad del *tool calling* en modelos locales; si el dashboard lo genera el agente o es propio. |
 
 ### Backlog del MVP
@@ -1102,7 +1104,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
    - **cuando** un operador pulsa "Asignarme",
    - **entonces** el ticket pasa a `Assigned` con ese operador como assignee.
 2. **Asignar a otro operador (supervisor)**
-   - **Dado** un ticket en `Open` o en `Assigned` **(asumido: reasignación)**,
+   - **Dado** un ticket en `Open` o en `Assigned`,
    - **cuando** un supervisor lo asigna a un operador activo,
    - **entonces** ese operador pasa a ser el assignee y el ticket queda en `Assigned`.
 3. **Asignar a otro sin permiso**
@@ -1111,21 +1113,20 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
    - **entonces** recibe `403` y el ticket no cambia.
 4. **Transiciones del operador**
    - **Dado** un ticket asignado,
-   - **cuando** el operador o supervisor lo mueve a `In progress`, `Pending user`, `Solved` o `Canceled`,
-   - **entonces** el cambio solo se aplica si la transición existe en el flujo:
-     `Assigned → In progress`, `In progress ↔ Pending user`, `In progress → Solved`, y `Open | Assigned | In progress | Pending user → Canceled` **(asumido: desde qué estados se cancela)**.
+   - **cuando** el operador asignado o el supervisor solicita `Assigned → In progress`, `In progress → Pending user` o `In progress → Solved`,
+   - **entonces** el sistema aplica la transición solicitada.
 5. **Cerrar un ticket resuelto**
-   - **Dado** un ticket en `Solved` del que soy reporter,
+   - **Dado** que soy peticionario o supervisor y abrí un ticket que está en `Solved`,
    - **cuando** pulso "Cerrar",
    - **entonces** pasa a `Closed`.
-6. **Cancelar un ticket propio (asumido: en cualquier estado no final)**
-   - **Dado** un ticket del que soy reporter en `Open`, `Assigned`, `In progress` o `Pending user`,
-   - **cuando** pulso "Cancelar",
+6. **Cancelar un ticket**
+   - **Dado** un ticket en `Open`, `Assigned`, `In progress` o `Pending user`,
+   - **cuando** el reportero, el operador asignado o un supervisor pulsa "Cancelar",
    - **entonces** pasa a `Canceled`.
 7. **Transiciones inválidas**
    - **Dado** un ticket en un estado cualquiera,
    - **cuando** alguien pide una transición que no existe (p. ej. `Open → Solved`) o que su rol no permite (p. ej. un usuario pide `In progress`),
-   - **entonces** el backend la rechaza (`422` si la transición no existe, `403` si no tiene permiso) y el ticket no cambia.
+   - **entonces** el backend la rechaza con `404` si el ticket no es visible. Para un ticket visible, devuelve `422` si la transición no existe o `403` si el actor carece de permiso. El ticket no cambia.
 8. **Estados finales**
    - **Dado** un ticket en `Closed` o `Canceled`,
    - **cuando** alguien pide cualquier transición,
@@ -1137,10 +1138,14 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 10. **Interfaz**
     - **Dado** que abro el detalle de un ticket,
     - **cuando** se carga,
-    - **entonces** solo veo los botones de las transiciones permitidas para el estado actual y mi rol.
+   - **entonces** solo veo los botones de las transiciones permitidas para el estado actual, mi rol y mi relación con el ticket.
+11. **Retomar un ticket pendiente**
+    - **Dado** un ticket en `Pending user`,
+    - **cuando** el reportero comenta, el ticket se mantiene en ese estado,
+    - **y cuando** el operador asignado o un supervisor solicita retomar el trabajo, **entonces** pasa a `In progress`.
 
 **Fuera de alcance:**
-- Salida automática de `Pending user` cuando el usuario comenta, y reapertura de tickets `Solved` (pendientes de requisitos).
+- Salida automática de `Pending user` al comentar y reapertura de tickets `Solved`.
 - Notificaciones (email o en la aplicación) al cambiar de estado.
 - SLA y alertas por tiempo en cada estado.
 - Acciones masivas sobre varios tickets.
@@ -1280,12 +1285,12 @@ Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de es
 |------|----------|------------|-----------|------------|
 | Backend | HU-04 | 5 SP | Must | REQ-DB-01, autenticación por sesión (HU-00) |
 
-**Objetivo:** implementar en la API las reglas del flujo de la sección 1.2, de forma que sean la **única fuente de verdad** de qué transiciones existen y quién puede hacerlas. La usarán el detalle del ticket y el Kanban.
+**Objetivo:** implementar en la API la [matriz de transiciones del PRD](PRD/PRD.md#6-flujo-de-estados). El detalle del ticket y el Kanban consultan la API para saber qué transiciones puede ejecutar la persona autenticada.
 
 **Alcance:**
 
 1. **`app/services/ticket_workflow.ts` (máquina de estados, sin dependencias HTTP):**
-   - Tabla declarativa de transiciones: `from`, `to` y roles permitidos.
+   - Tabla declarativa de transiciones: `from`, `to`, roles y relación del actor con el ticket.
 
      | Desde | Hacia | Roles |
      |-------|-------|-------|
@@ -1295,8 +1300,8 @@ Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de es
      | `in_progress` | `pending_user` | `agent` asignado, `supervisor` |
      | `pending_user` | `in_progress` | `agent` asignado, `supervisor` |
      | `in_progress` | `solved` | `agent` asignado, `supervisor` |
-     | `solved` | `closed` | `requester` (reporter del ticket) |
-     | `open`, `assigned`, `in_progress`, `pending_user` | `canceled` | `requester` (reporter), `agent` asignado, `supervisor` |
+     | `solved` | `closed` | Reportero (`requester` o `supervisor`) |
+     | `open`, `assigned`, `in_progress`, `pending_user` | `canceled` | Reportero, `agent` asignado, `supervisor` |
 
    - `availableTransitions(ticket, user)`: devuelve las transiciones que el usuario puede hacer ahora.
    - `transition(ticket, user, to, { assigneeId? })`: valida, aplica el cambio y registra el historial **en una sola transacción**: `UPDATE` del ticket, `solved_at`/`closed_at` cuando corresponda, y `INSERT` en `ticket_events` (`status_changed` y, si cambia el assignee, `assigned`).
@@ -1312,8 +1317,8 @@ Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de es
 
 **Criterios de aceptación:**
 
-- Todas las filas de la tabla de transiciones funcionan para los roles permitidos, y cualquier otra combinación devuelve `403` o `422` sin modificar el ticket.
-- Un operador no asignado no puede mover el ticket de otro operador (`403`); un supervisor sí.
+- Todas las filas de la tabla de transiciones funcionan para los actores permitidos. Los rechazos por visibilidad, permiso o transición inválida devuelven `404`, `403` o `422`, respectivamente, sin modificar el ticket.
+- Cuando un operador solicita una transición sobre el ticket de otro operador, la API devuelve `404` por la regla de visibilidad. Un supervisor puede consultarlo y aplicar las transiciones que permita su estado.
 - Al asignar, el assignee debe ser un usuario activo con rol `agent` o `supervisor`. Si no, `422`.
 - Cada transición correcta crea exactamente un evento `status_changed` (y uno `assigned` si cambia el assignee) con actor, valor anterior y nuevo.
 - `solved_at` se rellena al pasar a `solved`; `closed_at`, al pasar a `closed` o `canceled`.
@@ -1321,7 +1326,7 @@ Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de es
 
 **Tests:**
 
-- **Unitarios (Japa):** la tabla completa de la máquina de estados, generada a partir de todas las combinaciones de estado × destino × rol, y comprobando que solo pasan las permitidas.
+- **Unitarios (Japa, MBT):** derivar los casos de la matriz aprobada del PRD con estado de origen, destino, rol, relación con el ticket y resultado esperado. Cubrir todas las transiciones permitidas y rechazos por estado, rol o relación, incluido el cierre por un supervisor que abrió el ticket frente a otro supervisor que puede verlo. Los resultados esperados se fijan a partir del PRD y son independientes del código de la máquina de estados.
 - **Funcionales (Japa + PostgreSQL de test):** flujo completo `open → assigned → in_progress → pending_user → in_progress → solved → closed`, más un caso por cada código de error (`401`, `403`, `404`, `409`, `422`).
 
 **Definition of Done:** tipo *feature*, más:
