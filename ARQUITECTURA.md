@@ -473,7 +473,7 @@ Logs estructurados en JSON (logger de AdonisJS) con id de petición, usuario y t
 | Unitario | Japa | Máquina de estados (todas las combinaciones estado × destino × rol) y cálculo de la prioridad. |
 | Integración / funcional | Japa + PostgreSQL de test | Endpoints de la API, permisos y códigos de error; restricciones de la base de datos. |
 | Componentes | Vitest + Testing Library + MSW | Formularios, filtros y comportamiento del Kanban ante errores. |
-| End-to-end | Playwright | Flujo principal: el usuario crea, el operador asigna y resuelve, y el usuario cierra. |
+| End-to-end | Playwright | HU-00 cubre inicio, recarga y cierre de sesión en Chromium con web, API y PostgreSQL temporal en Compose. El flujo previsto de tickets cubre creación, asignación, resolución y cierre. |
 
 ### 11.6 Calidad y documentación
 

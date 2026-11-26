@@ -181,6 +181,7 @@ Desde otra terminal ejecuta `curl --fail http://127.0.0.1:5173/api/health` para 
 | `npm run format` | Aplica el formato de Biome. |
 | `npm run check` | Verifica lint, formato y tipos de la API y la web. |
 | `npm test` | Ejecuta las suites configuradas en los workspaces. |
+| `npm run test:e2e` | Ejecuta Playwright contra la URL definida en `REQUESTO_E2E_URL`. |
 | `npm run build` | Compila la API y la web. |
 
 Para ejecutar los comandos con Node 24 y la configuración local de la API, usa Docker desde la raíz. Por ejemplo:
@@ -197,6 +198,16 @@ docker compose -f compose.test.yml up --abort-on-container-exit --exit-code-from
 ```
 
 Este comando instala las dependencias desde el lockfile y propaga el código de salida de las pruebas. La suite de Japa usa `requesto_test`, una instancia de PostgreSQL con almacenamiento temporal separada de desarrollo. Vitest prueba la web con Testing Library y simula la respuesta HTTP. Puedes retirar los contenedores detenidos con `docker compose -f compose.test.yml down`.
+
+Para ejecutar el E2E de autenticación con Chromium, usa un proyecto Compose separado:
+
+```bash
+docker compose -p requesto-e2e -f compose.dev.yml -f compose.e2e.yml run --rm -T node npm ci
+docker compose -p requesto-e2e -f compose.dev.yml -f compose.e2e.yml run --rm -T e2e
+docker compose -p requesto-e2e -f compose.dev.yml -f compose.e2e.yml down --volumes
+```
+
+Compose inicia la web y la API, migra PostgreSQL temporal y carga cuentas sintéticas. Si la prueba falla, Playwright deja la traza en `test-results/e2e/`.
 
 ---
 
@@ -429,7 +440,7 @@ Estrategia prevista (se completará con ejemplos reales en la entrega final):
 - **Unitarios (Japa):** máquina de estados (transiciones válidas e inválidas por rol) y cálculo de la prioridad.
 - **Integración/funcionales (Japa + PostgreSQL de test):** endpoints de la API, incluidos los permisos (por ejemplo, que un usuario reciba `403` al intentar asignar un ticket).
 - **Componentes (Vitest + Testing Library):** formulario de creación y acciones visibles según el rol.
-- **End-to-end (Playwright):** flujo principal completo: el usuario crea un ticket, el operador se lo asigna y lo resuelve, y el usuario lo cierra.
+- **End-to-end (Playwright):** HU-00 cubre el inicio de sesión, la recarga y el cierre en Chromium. El flujo principal previsto continúa con la creación, asignación, resolución y cierre de un ticket.
 
 ---
 

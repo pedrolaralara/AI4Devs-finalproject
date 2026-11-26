@@ -7,6 +7,7 @@
       "apps/**/*.json",
       "apps/**/*.ts",
       "apps/**/*.tsx",
+      "e2e/**/*.ts",
       "!!**/.adonisjs",
       "!!**/node_modules",
       "!!**/build",

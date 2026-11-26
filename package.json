@@ -13,6 +13,7 @@
     "typecheck": "npm run typecheck --workspaces",
     "check": "biome check . && npm run typecheck",
     "test": "npm run test --workspaces --if-present",
+    "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "build": "npm run build --workspaces"
   },
   "engines": {
@@ -20,6 +21,7 @@
     "npm": "^11.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.6.9"
+    "@biomejs/biome": "^2.6.9",
+    "@playwright/test": "1.65.1"
   }
 }
