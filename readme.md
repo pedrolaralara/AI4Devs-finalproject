@@ -142,7 +142,7 @@ Se completará en la entrega final, con capturas o vídeo de la aplicación func
 
 ### **1.4. Instrucciones de instalación:**
 
-Tras iniciar sesión, selecciona **Ver tickets** para consultar los tickets visibles para tu rol y abrir su detalle.
+Tras iniciar sesión, selecciona **Ver tickets** para consultar los tickets visibles para tu rol y abrir su detalle. Puedes combinar filtros, cambiar el orden y navegar entre páginas. El listado conserva la consulta en la URL al volver desde un detalle.
 
 Para usar Node 24 y npm con Docker Desktop, ejecuta desde la raíz:
 

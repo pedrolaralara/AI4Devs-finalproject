@@ -5,6 +5,7 @@ import { createTicket } from '#services/create_ticket'
 import { listTickets } from '#services/list_tickets'
 import { viewTicket } from '#services/view_ticket'
 import { createTicketValidator, unknownTicketFields } from '#validators/create_ticket'
+import { ticketListValidator } from '#validators/ticket_list'
 import type { CreatedTicket } from '../interfaces/created_ticket.js'
 import type { TicketPage } from '../interfaces/ticket_page.js'
 import {
@@ -22,15 +23,25 @@ export default class TicketsController {
   /**
    * @index
    * @summary Listar los tickets visibles
-   * @description Devuelve la primera página de tickets visibles para la cuenta activa.
+   * @description Devuelve una página de los tickets visibles que cumplen los filtros.
+   * @paramQuery status - Estados separados por comas - @type(string)
+   * @paramQuery priority - Prioridades del 1 al 5 separadas por comas - @type(string)
+   * @paramQuery assigneeId - ID, me o none - @type(string)
+   * @paramQuery reporterId - ID o me - @type(string)
+   * @paramQuery q - Texto en título o descripción - @type(string)
+   * @paramQuery sort - Campo de orden, con prefijo negativo para descendente - @type(string)
+   * @paramQuery page - Página desde 1 - @type(number)
+   * @paramQuery perPage - Tamaño de página del 1 al 100 - @type(number)
    * @responseBody 200 - <TicketPage> - Página de tickets
    * @responseBody 401 - <SessionError> - UNAUTHENTICATED
+   * @responseBody 422 - <ValidationErrors> - Parámetros inválidos
    */
-  async index({ auth, response }: HttpContext) {
+  async index({ auth, request, response }: HttpContext) {
     const viewer = await activeUser(auth)
     if (!viewer) return unauthenticated(response)
 
-    const page = await listTickets(viewer)
+    const input = await ticketListValidator.validate(request.qs())
+    const page = await listTickets(viewer, input)
     const result: TicketPage = {
       meta: {
         total: page.total,

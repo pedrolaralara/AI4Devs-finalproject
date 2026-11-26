@@ -25,6 +25,6 @@ Ninguna.
 
 - [HU-02 en Linear](https://linear.app/pedrolaralara/issue/PED-12), [lista básica](https://linear.app/pedrolaralara/issue/PED-28), [filtros y paginación](https://linear.app/pedrolaralara/issue/PED-97) y [verificación](https://linear.app/pedrolaralara/issue/PED-98).
 - [PRD](../../../PRD/PRD.md#visibilidad-de-tickets) y [contrato de la API](../../../readme.md#4-especificación-de-la-api).
-- La [especificación](specs/ticket-list/spec.md) se traduce en el [diseño](design.md). Las referencias a pruebas se añadirán cuando se implementen.
+- La [especificación](specs/ticket-list/spec.md) se traduce en el [diseño](design.md). Las pruebas de [listado](../../../apps/api/tests/functional/ticket_list.spec.ts) y [OpenAPI](../../../apps/api/tests/functional/openapi.spec.ts) cubren el contrato HTTP.
 
 La historia funcional queda pendiente de validar con el autor antes de implementar.

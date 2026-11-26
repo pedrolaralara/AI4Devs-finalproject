@@ -57,14 +57,19 @@ type Person = { id: string; fullName: string }
 
 export type TicketListItem = Pick<TicketDetail, 'id' | 'key' | 'title' | 'status' | 'priority'>
 
+export type TicketPage = {
+  data: TicketListItem[]
+  meta: { total: number; perPage: number; currentPage: number; lastPage: number }
+}
+
 export async function getTickets(
+  search: string,
   signal: AbortSignal,
-): Promise<{ kind: 'loaded'; tickets: TicketListItem[] } | { kind: 'expired' }> {
-  const response = await fetch('/api/tickets', { signal, cache: 'no-store' })
+): Promise<{ kind: 'loaded'; page: TicketPage } | { kind: 'expired' }> {
+  const response = await fetch(`/api/tickets${search}`, { signal, cache: 'no-store' })
   if (response.status === 401) return { kind: 'expired' }
   if (!response.ok) throw new Error('No se pudo consultar la lista de tickets.')
-  const { data } = (await response.json()) as { data: TicketListItem[] }
-  return { kind: 'loaded', tickets: data }
+  return { kind: 'loaded', page: await response.json() }
 }
 
 export type TicketDetail = Omit<CreatedTicket, 'status'> & {

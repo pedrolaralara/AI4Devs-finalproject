@@ -66,7 +66,11 @@ test('publishes the ticket list and aggregated detail contracts', async ({ asser
   const list = paths['/api/tickets'].get
   const page = components.schemas.TicketPage.properties
 
-  assert.sameMembers(Object.keys(list.responses), ['200', '401'])
+  assert.sameMembers(Object.keys(list.responses), ['200', '401', '422'])
+  assert.sameMembers(
+    list.parameters.map((parameter: { name: string }) => parameter.name),
+    ['status', 'priority', 'assigneeId', 'reporterId', 'q', 'sort', 'page', 'perPage'],
+  )
   assert.deepEqual(list.security, [{ sessionCookie: [] }])
   assert.equal(page.meta.$ref, '#/components/schemas/TicketPageMeta')
   assert.equal(page.data.items.$ref, '#/components/schemas/TicketListItem')

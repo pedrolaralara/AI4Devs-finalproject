@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { getTicket, type TicketDetail } from './ticket-api'
 import { statuses } from './ticket-status'
 import { TicketWorkflow } from './ticket-workflow'
@@ -113,6 +113,7 @@ type LoadState =
   | { kind: 'failed' }
 
 function TicketQuery({ id, onExpired }: { id: string; onExpired: () => void }) {
+  const { search } = useLocation()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
   const [conflict, setConflict] = useState(false)
   const loading = state.kind === 'loading'
@@ -171,7 +172,7 @@ function TicketQuery({ id, onExpired }: { id: string; onExpired: () => void }) {
         <Link to="/">Volver al inicio</Link>
       </p>
       <p>
-        <Link to="/tickets">Volver a la lista</Link>
+        <Link to={`/tickets${search}`}>Volver a la lista</Link>
       </p>
     </>
   )

@@ -32,7 +32,11 @@ test('lists only visible tickets with a total scoped to the active role')
 
       try {
         const own = await Ticket.create({ ...base, reporterId: viewer.id })
-        const open = await Ticket.create({ ...base, reporterId: other.id })
+        const open = await Ticket.create({
+          ...base,
+          description: 'Ejemplo con 100% de avance',
+          reporterId: other.id,
+        })
         const assigned = await Ticket.create({
           ...base,
           reporterId: other.id,
@@ -59,6 +63,27 @@ test('lists only visible tickets with a total scoped to the active role')
           expected,
         )
         assert.equal(meta.total, expected.length)
+
+        const filtered = await client
+          .get('/api/tickets')
+          .header('Cookie', headers.Cookie)
+          .qs({ status: 'open,assigned', q: '100%', assigneeId: 'none', perPage: 1 })
+        filtered.assertStatus(200)
+        assert.equal(filtered.body().meta.total, role === 'requester' ? 0 : 1)
+
+        const page = await client
+          .get('/api/tickets')
+          .header('Cookie', headers.Cookie)
+          .qs({ page: 2, perPage: 1 })
+        page.assertStatus(200)
+        assert.equal(page.body().meta.total, expected.length)
+        assert.equal(page.body().meta.currentPage, 2)
+
+        const invalid = await client
+          .get('/api/tickets')
+          .header('Cookie', headers.Cookie)
+          .qs({ perPage: 101, reporterId: '9223372036854775808' })
+        invalid.assertStatus(422)
       } finally {
         await Ticket.query().where('reporterId', other.id).delete()
         await other.delete()

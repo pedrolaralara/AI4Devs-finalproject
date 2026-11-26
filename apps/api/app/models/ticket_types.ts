@@ -12,6 +12,11 @@ export const ticketStatuses = [
 ] as const
 export type TicketStatus = (typeof ticketStatuses)[number]
 
+export function validTicketId(id: string) {
+  const maxId = '9223372036854775807'
+  return /^[1-9][0-9]{0,18}$/.test(id) && (id.length < maxId.length || id <= maxId)
+}
+
 export const ticketEventTypes = [
   'created',
   'status_changed',

@@ -3,6 +3,8 @@ import type Ticket from '#models/ticket'
 import type User from '#models/user'
 import type { TicketDetail } from '../interfaces/ticket_detail.js'
 
+export { validTicketId } from '#models/ticket_types'
+
 export function ticketFields(ticket: Ticket) {
   return {
     id: ticket.id,
@@ -37,11 +39,6 @@ export function unauthenticated(response: HttpContext['response']) {
 
 export function ticketNotFound(response: HttpContext['response']) {
   return response.notFound({ code: 'TICKET_NOT_FOUND', message: 'El ticket no está disponible.' })
-}
-
-export function validTicketId(id: string) {
-  const maxId = '9223372036854775807'
-  return /^[1-9][0-9]{0,18}$/.test(id) && (id.length < maxId.length || id <= maxId)
 }
 
 export function serializeTicketSummary(ticket: Ticket) {

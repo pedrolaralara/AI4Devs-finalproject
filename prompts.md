@@ -60,7 +60,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 2. **Especificación e implementación.** El autor pidió revisar la trazabilidad entre la historia, OpenSpec, el contrato HTTP y las pruebas. Codex desglosó el trabajo en Linear y el autor validó cada bloque antes del commit.
 3. **Pruebas del flujo principal.** El autor pidió poder verificar manualmente los tickets mientras el listado seguía pendiente. Se usó la URL directa del detalle y se comprobó el recorrido en Playwright con sesiones separadas de peticionario y operador.
 4. **Cierre de la entrega y CI.** El autor proporcionó el checklist oficial y pidió desglosar el pipeline en Linear. Codex corrigió el procedimiento de entrega, comprobó las suites de Docker desde una copia de los archivos versionados y reutilizó esos comandos en GitHub Actions. El autor revisó las coincidencias de Gitleaks en el historial base y confirmó que eran ejemplos.
-5. **Listado con visibilidad por rol.** El autor validó el recorrido de HU-02. Codex escribió primero las pruebas de sesión y visibilidad, verificó que fallaban y consultó Context7 para usar la paginación de Lucid con la regla compartida del detalle.
+5. **Listado con visibilidad por rol.** El autor validó el recorrido de HU-02. Codex escribió primero las pruebas de sesión y visibilidad, verificó que fallaban y consultó Context7 para usar la paginación de Lucid con la regla compartida del detalle. En la revisión manual, el autor detectó que buscar duplicaba el formulario. Codex reprodujo el fallo en Chromium y corrigió las claves de React que compartían los filtros y los resultados.
 
 ---
 
