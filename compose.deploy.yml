@@ -1,0 +1,61 @@
+name: requesto-deploy
+
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${REQUESTO_DB_USER:-requesto}
+      POSTGRES_PASSWORD: ${REQUESTO_DB_PASSWORD:?Define REQUESTO_DB_PASSWORD}
+      POSTGRES_DB: ${REQUESTO_DB_NAME:-requesto}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    init: true
+    command: [sh, -ec, 'node ace migration:run --force && exec node bin/server.js']
+    environment:
+      APP_URL: ${REQUESTO_APP_URL:?Define REQUESTO_APP_URL}
+      APP_KEY: ${REQUESTO_APP_KEY:?Define REQUESTO_APP_KEY}
+      LOG_LEVEL: ${REQUESTO_LOG_LEVEL:-info}
+      DB_HOST: db
+      DB_PORT: '5432'
+      DB_USER: ${REQUESTO_DB_USER:-requesto}
+      DB_PASSWORD: ${REQUESTO_DB_PASSWORD:?Define REQUESTO_DB_PASSWORD}
+      DB_DATABASE: ${REQUESTO_DB_NAME:-requesto}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3333/api/health').then(r => { if (!r.ok) process.exitCode = 1 }).catch(() => { process.exitCode = 1 })"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REQUESTO_WEB_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1/api/health]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  postgres_data:

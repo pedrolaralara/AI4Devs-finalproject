@@ -419,7 +419,8 @@ Requesto se despliega **on-premise** con Docker Compose, en un único servidor d
 
 ```mermaid
 flowchart LR
-    User["Usuarios<br/>(red interna)"] -- HTTPS --> Nginx
+    User["Usuarios<br/>(red interna)"] -- HTTPS --> TLS["Proxy TLS del servidor"]
+    TLS -- "HTTP · 127.0.0.1:8080" --> Nginx
     subgraph Host["Servidor on-premise · Docker Compose"]
         Nginx["web<br/>Nginx + build de la SPA"]
         Api["api<br/>AdonisJS (Node.js)"]
@@ -433,8 +434,9 @@ flowchart LR
 **Proceso de despliegue previsto:**
 1. GitHub Actions ejecuta `npm ci`, `npm run check`, `npm run build` y las suites de Japa, Vitest y Playwright en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. Los jobs de pruebas reutilizan los archivos Compose documentados en la sección 1.4. Si falla Playwright, las trazas disponibles se pueden descargar durante siete días. Gitleaks bloquea si detecta secretos en los commits introducidos y `npm audit` bloquea por vulnerabilidades altas o críticas en el lockfile.
 2. Las imágenes Docker de `web` y `api` se construyen desde la raíz con `docker build -f docker/web.Dockerfile -t requesto-web .` y `docker build -f docker/api.Dockerfile -t requesto-api .`. Nginx sirve la SPA compilada y reenvía `/api/` y `/docs` a la API.
-3. En el servidor se actualizan las imágenes y se levanta el stack con `docker compose up -d`. La API ejecuta las migraciones pendientes al arrancar.
-4. La configuración (credenciales de la base de datos, clave de la aplicación, proveedor y clave del LLM) se inyecta mediante variables de entorno, nunca en el repositorio.
+3. Copia `docker/deploy.env.example` a `.env.deploy` y configura la URL HTTPS y dos valores distintos para la clave de la aplicación y la contraseña de PostgreSQL. Puedes generar cada valor con `openssl rand -hex 32`.
+4. Ejecuta `docker compose --env-file .env.deploy -f compose.deploy.yml up --build -d --wait`. La API aplica las migraciones pendientes y PostgreSQL guarda sus datos en un volumen persistente.
+5. Configura el proxy TLS del servidor para reenviar la URL HTTPS a `127.0.0.1:8080` o al puerto local que hayas elegido. Compose publica solo la web en la interfaz local. Puedes verificar el conjunto con `curl --fail http://127.0.0.1:8080/api/health`.
 
 La revisión local se realiza con `compose.dev.yml` y las [pruebas del flujo principal](#pruebas-del-flujo-principal).
 
