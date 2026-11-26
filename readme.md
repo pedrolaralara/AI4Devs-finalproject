@@ -171,7 +171,7 @@ La ruta devuelve `{"status":"ok"}` cuando la API puede consultar PostgreSQL. Par
 docker compose -f compose.dev.yml up api web
 ```
 
-Desde otra terminal ejecuta `curl --fail http://127.0.0.1:5173/api/health` o abre `http://localhost:5173` y comprueba que se muestra «API conectada». Vite reenvía las llamadas a `/api` al servicio de AdonisJS. PostgreSQL usa un volumen persistente y es accesible dentro de la red de Compose. El archivo `compose.dev.yml` usa valores de desarrollo, que se pueden ajustar con `REQUESTO_DB_USER`, `REQUESTO_DB_PASSWORD` y `REQUESTO_DB_NAME` al inicializar el volumen.
+Desde otra terminal ejecuta `curl --fail http://127.0.0.1:5173/api/health` o abre `http://localhost:5173` y comprueba que se muestra «API conectada». Vite reenvía `/api` y `/docs` al servicio de AdonisJS. PostgreSQL usa un volumen persistente y es accesible dentro de la red de Compose. El archivo `compose.dev.yml` usa valores de desarrollo, que se pueden ajustar con `REQUESTO_DB_USER`, `REQUESTO_DB_PASSWORD` y `REQUESTO_DB_NAME` al inicializar el volumen.
 
 **Comandos de desarrollo desde la raíz**
 
@@ -600,11 +600,20 @@ El seeder de desarrollo crea seis cuentas sintéticas: `supervisor@requesto.test
 
 El contrato cubre la **creación de tickets** (HU-01), el **listado con filtros** (HU-02 y HU-05) y la **consulta y ejecución de transiciones** (HU-04 y HU-05).
 
-Esta especificación es el **contrato de diseño** de la entrega 1. En el código, la especificación OpenAPI se generará a partir de las rutas, los validadores y los comentarios de los controllers con `adonis-autoswagger`, y se publicará con Scalar en `/docs`.
+La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra con Scalar en `/docs`. En desarrollo se puede abrir en `http://localhost:5173/docs`. El documento describe actualmente HU-00 y se genera con `adonis-autoswagger` a partir de las rutas, validadores y comentarios de los controladores. El build de la API incluye el JSON generado y sirve Scalar desde una dependencia npm local.
+
+| Operación de HU-00 | Respuesta |
+|---|---|
+| `GET /api/auth/csrf` | `204` y cookie `XSRF-TOKEN`. |
+| `POST /api/auth/login` | `200` con el perfil y la cookie de sesión. `400` si fallan las credenciales, `403` si falla CSRF, `422` si falla la validación. |
+| `GET /api/auth/me` | `200` con el perfil vigente o `401` sin acceso. |
+| `POST /api/auth/logout` | `204` tras revocar la sesión o `403` si falla CSRF. |
+
+El YAML de esta sección conserva el **contrato de diseño de tickets** de la entrega 1.
 
 **Convenciones comunes:**
 - Todas las rutas van bajo `/api` y usan JSON con claves en *camelCase*.
-- **Autenticación por sesión:** cookie `HttpOnly` obtenida en el login (ver [ADR](docs/adr/20260924-autenticacion-por-sesion-con-cookie.md)). Sin sesión, la respuesta es `401`.
+- **Autenticación por sesión:** cookie `HttpOnly` obtenida en el login (ver [ADR](docs/adr/20260924-autenticacion-por-sesion-con-cookie.md)). Las rutas que requieren acceso devuelven `401` cuando falta una sesión válida.
 - **CSRF:** las peticiones que modifican datos (`POST`) envían la cabecera `X-XSRF-TOKEN` con el valor de la cookie `XSRF-TOKEN`.
 - **Errores de validación (`422`):** siguen el formato de VineJS, con una lista `errors` de `{ field, rule, message }`. Los errores de negocio usan `{ code, message }`.
 

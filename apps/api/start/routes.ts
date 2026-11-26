@@ -1,6 +1,7 @@
 import router from '@adonisjs/core/services/router'
 import db from '@adonisjs/lucid/services/db'
 
+const ApiDocsController = () => import('#controllers/api_docs_controller')
 const AuthController = () => import('#controllers/auth_controller')
 
 router
@@ -11,6 +12,10 @@ router
     router.post('/logout', [AuthController, 'logout'])
   })
   .prefix('/api/auth')
+
+router.get('/api/openapi.json', [ApiDocsController, 'spec'])
+router.get('/api/docs/scalar.js', [ApiDocsController, 'script'])
+router.get('/docs', [ApiDocsController, 'index'])
 
 router.get('/api/health', async ({ logger, response }) => {
   try {

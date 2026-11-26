@@ -401,7 +401,7 @@ Principios de diseño de datos:
 
 ## 9. API
 
-El contrato de diseño (OpenAPI 3.0) de los endpoints principales está en la **sección 4 del `readme.md`**. En el código, la especificación se genera con `adonis-autoswagger` y se publica con Scalar en `/docs`.
+El contrato de diseño de tickets y el resumen de HU-00 están en la **sección 4 del `readme.md`**. AdonisJS publica el contrato implementado en `/api/openapi.json` y la referencia Scalar en `/docs`. El build genera el JSON con `adonis-autoswagger` y lo copia como artefacto. El navegador carga el script de Scalar desde el mismo origen.
 
 Convenciones:
 - Rutas bajo `/api`, recursos en plural (`/tickets`) y acciones de flujo como subrecurso (`/tickets/:id/transitions`).

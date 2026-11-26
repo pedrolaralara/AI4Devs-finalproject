@@ -96,5 +96,5 @@ export default defineConfig({
   | the production build.
   |
   */
-  metaFiles: [],
+  metaFiles: [{ pattern: 'tmp/openapi.json', reloadServer: false }],
 })

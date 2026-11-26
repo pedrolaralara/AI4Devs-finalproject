@@ -33,6 +33,8 @@ Ninguna.
 
 Los identificadores enlazan los criterios de la [historia HU-00](../../../readme.md#hu-00--autenticación-y-roles) con los escenarios de la [spec y el contrato HTTP](specs/user-session/spec.md) y sus decisiones de diseño.
 
+La aplicación publica el OpenAPI generado en `/api/openapi.json`. Las pruebas funcionales comprueban las respuestas, cabeceras y esquemas documentados.
+
 | Historia | Escenarios funcionales | Contrato HTTP | Diseño |
 |---|---|---|---|
 | CA-1 | Acceso con una cuenta activa | CSRF y login | [Acceso](design.md#acceso) |

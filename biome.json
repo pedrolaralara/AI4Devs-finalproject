@@ -10,7 +10,8 @@
       "!!**/.adonisjs",
       "!!**/node_modules",
       "!!**/build",
-      "!!**/dist"
+      "!!**/dist",
+      "!!apps/api/tmp/openapi.json"
     ]
   },
   "formatter": {

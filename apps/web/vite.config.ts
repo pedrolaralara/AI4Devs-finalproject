@@ -11,6 +11,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': env.API_PROXY_TARGET ?? 'http://127.0.0.1:3333',
+      '/docs': env.API_PROXY_TARGET ?? 'http://127.0.0.1:3333',
     },
   },
 })
