@@ -284,3 +284,7 @@ Pasaron Biome, TypeScript, las 23 pruebas de Japa y las dos de Vitest. La instal
 **Formulario de creación (PED-79).** Codex consultó Context7 sobre formularios controlados y errores asociados a campos en React. Reutilizó la obtención de CSRF, añadió React Router y abrió el resumen con la respuesta del servidor. Vitest usó una prioridad devuelta distinta de la estimada para comprobar que el resumen muestra el valor guardado. La consulta del detalle al recargar se mantiene en HU-03. Pasaron 31 pruebas de Japa, nueve de Vitest, Biome, TypeScript y el build web.
 
 **Verificación de HU-01 (PED-80).** Codex vinculó los criterios del README con la spec, el diseño, el contrato generado y las pruebas. Playwright comprobó con PostgreSQL aislado que un peticionario puede enviar el formulario, recibir `201` con `Location` y abrir el resumen con la prioridad 4 de 5. Pasaron los dos E2E, 31 pruebas de Japa y nueve de Vitest, Biome, TypeScript y OpenSpec.
+
+**Borrador de detalle (PED-81).** Codex trasladó la visibilidad aprobada en el PRD al change de HU-03 y enlazó los criterios del README, los escenarios, el contrato y el diseño. Marcó pendientes de revisión el recorrido de consulta, la respuesta agregada, el orden cronológico y el estado sin comentarios. El borrador pasó la validación estricta de OpenSpec.
+
+El autor confirmó para HU-03 la consulta desde la URL o al recargar, la respuesta agregada, el orden de más antiguo a más reciente y el mensaje cuando aún no hay comentarios.

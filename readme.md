@@ -1093,6 +1093,23 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 
 ---
 
+#### HU-03 · Detalle del ticket con comentarios e historial
+
+**Como** persona con permiso para ver un ticket, **quiero** abrir su detalle desde la URL, **para** consultar sus datos, la conversación y los cambios registrados.
+
+**Épica** E1 · **Prioridad** Must · **Estimación** 5 SP.
+
+| Criterio | Dado | Cuando | Entonces |
+|---|---|---|---|
+| CA-1 · Detalle | Tengo permiso para consultar el ticket. | Abro su URL o recargo el detalle. | Veo sus campos, los comentarios con autor y fecha y el historial de cambios. |
+| CA-2 · Visibilidad | El ticket está fuera de mi visibilidad o no existe. | Abro su URL. | La pantalla indica que el ticket no está disponible. |
+
+**Fuera de alcance**. Escritura de comentarios, cambios en el ticket, listado y Kanban.
+
+**Contexto técnico**. La [propuesta de OpenSpec](openspec/changes/view-ticket-detail/proposal.md) enlaza los escenarios, el contrato y el diseño.
+
+---
+
 **Historia de Usuario 1**
 
 #### HU-01 · Crear un ticket
