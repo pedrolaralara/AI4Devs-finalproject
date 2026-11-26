@@ -2,7 +2,7 @@
 
 > **Fuente de verdad de la arquitectura del proyecto.** La sección 2 del `readme.md` es el resumen para la entrega del máster; si hay diferencias, manda este documento.
 >
-> **Versión:** 1.0 · **Fecha:** 24/09/2026 · **Estado:** diseño previo a la implementación (entrega 2).
+> **Versión:** 1.1 · **Fecha:** 26/11/2026 · **Estado:** arquitectura de la entrega final.
 >
 > Estructura inspirada en arc42, con diagramas **C4** en Mermaid y decisiones en **ADRs** ([`docs/adr/`](docs/adr/README.md)). Los requisitos de producto están en [`PRD/PRD.md`](PRD/PRD.md).
 
@@ -27,7 +27,7 @@
 
 ## 1. Objetivos y requisitos que guían la arquitectura
 
-**Qué es Requesto:** una aplicación web, desplegable on-premise, que sustituye a Jira Service Management Data Center (EOL) para gestionar **un único tipo de ticket (Request)**, con un formulario fijo, un flujo de estados fijo y tres roles (usuario, operador y supervisor). Incluye un agente de IA para explotar la información de los tickets.
+**Qué es Requesto:** una aplicación web, desplegable on-premise, que sustituye a Jira Service Management Data Center (EOL) para gestionar **un único tipo de ticket (Request)**, con un formulario fijo, un flujo de estados fijo y tres roles (peticionario, operador y supervisor). Incluye creación, búsqueda, detalle y gestión del flujo. El Kanban, el agente de IA y el dashboard figuran en el backlog de producto.
 
 **Atributos de calidad**, por orden de prioridad:
 
@@ -60,31 +60,29 @@ flowchart LR
     Op["👤 Operador<br/>[Persona]<br/>Atiende las peticiones"]
     Sup["👤 Supervisor<br/>[Persona]<br/>Reparte y supervisa"]
     Sys["Requesto<br/>[Sistema de software]<br/>Gestión de tickets de tipo Request, on-premise"]
-    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
-    Req -- "Crea, comenta, cancela y cierra tickets" --> Sys
+    Req -- "Crea, cancela y cierra tickets" --> Sys
     Op -- "Se asigna y resuelve tickets" --> Sys
     Sup -- "Asigna tickets y consulta información" --> Sys
-    Sys -- "Preguntas + herramientas de solo lectura" --> LLM
 ```
 
 | Actor / sistema | Relación con Requesto |
 |-----------------|------------------------|
-| Usuario (`requester`) | Abre tickets, comenta, cancela los suyos y cierra los resueltos. |
+| Usuario (`requester`) | Abre tickets, cancela los suyos y cierra los resueltos. |
 | Operador (`agent`) | Se asigna tickets y los mueve por el flujo hasta resolverlos. |
 | Supervisor (`supervisor`) | Todo lo del operador, además de asignar tickets a otros y consultar la información. |
-| Proveedor LLM | Autoalojado dentro de la infraestructura de la empresa cuando se habilita el agente en producción. Recibe las preguntas y los resultados de herramientas de lectura. Se permite una API externa en desarrollo y demos solo con preguntas y datos sintéticos. |
+| Proveedor LLM (previsto) | Autoalojado dentro de la infraestructura de la empresa cuando se habilita el agente en producción. Recibe las preguntas y los resultados de herramientas de lectura. Se permite una API externa en desarrollo y demos solo con preguntas y datos sintéticos. |
 
 ## 4. Estrategia de solución
 
 | Decisión | Motivo | ADR |
 |----------|--------|-----|
-| **Cliente-servidor: SPA React + API REST** en AdonisJS | Un contrato de API explícito que usan la SPA y el agente de IA; front y back independientes. | [SPA + API REST](docs/adr/20260924-spa-react-y-api-rest-en-lugar-de-inertia.md) |
+| **Cliente-servidor: SPA React + API REST** en AdonisJS | Contrato explícito entre la SPA y la API con front y back independientes. | [SPA + API REST](docs/adr/20260924-spa-react-y-api-rest-en-lugar-de-inertia.md) |
 | **Monolito modular por capas** en el backend | Dominio pequeño y cerrado; microservicios solo añadirían complejidad operativa on-premise. | — |
 | **Máquina de estados** en la capa de dominio | Una única fuente de verdad para transiciones y permisos del flujo. | — |
 | **Sesión con cookie `HttpOnly`** | Herramienta interna bajo un solo dominio; sin tokens accesibles desde JavaScript. | [Sesión con cookie](docs/adr/20260924-autenticacion-por-sesion-con-cookie.md) |
 | **Reglas críticas también en la base de datos** | Restricciones CHECK/FK y prioridad como columna generada: los datos son correctos aunque falle una capa superior. | [Prioridad generada](docs/adr/20260924-prioridad-como-columna-generada.md) |
-| **Agente de IA con herramientas de solo lectura** | Reutiliza los servicios de dominio y sus permisos; sin SQL libre ni escrituras. | [Agente de IA](docs/adr/20260924-agente-ia-solo-lectura-y-proveedor-configurable.md) |
+| **Agente de IA previsto con herramientas de solo lectura** | Reutiliza los servicios de dominio y sus permisos; sin SQL libre ni escrituras. | [Agente de IA](docs/adr/20260924-agente-ia-solo-lectura-y-proveedor-configurable.md) |
 | **Monorepo con npm workspaces** | Un repositorio para la entrega; cambios de API y SPA en la misma PR. | [Monorepo](docs/adr/20260924-monorepo-con-npm-workspaces.md) |
 
 ## 5. Contenedores (C4 · nivel 2)
@@ -92,28 +90,26 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph Cliente["Navegador"]
-        SPA["SPA<br/>[React 19 + Vite]<br/>Lista, Kanban, detalle, chat IA"]
+        SPA["SPA<br/>[React 19 + Vite]<br/>Lista, detalle, creación"]
     end
 
     subgraph OnPrem["Servidor on-premise · Docker Compose"]
-        Proxy["web<br/>[Nginx]<br/>Estáticos de la SPA + reverse proxy + TLS"]
-        API["api<br/>[AdonisJS 7 · Node.js]<br/>API REST, dominio, agente de IA"]
+        Proxy["web<br/>[Nginx]<br/>Estáticos de la SPA + reverse proxy"]
+        API["api<br/>[AdonisJS 7 · Node.js]<br/>API REST y dominio"]
         DB[("db<br/>[PostgreSQL]<br/>Usuarios, tickets, comentarios, historial")]
     end
 
-    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
     SPA -- "HTTPS · JSON · cookie de sesión" --> Proxy
     Proxy -- "/api/*" --> API
     API -- "SQL vía Lucid" --> DB
-    API -- "HTTPS · tool calling" --> LLM
 ```
 
 | Contenedor | Tecnología | Responsabilidad |
 |------------|------------|-----------------|
-| **SPA** | React 19, Vite, TypeScript, React Router, TanStack Query, dnd-kit | Interfaz: login, lista con filtros, Kanban, detalle con comentarios e historial, formulario de creación y chat con el agente. Muestra solo las acciones permitidas, pero **no decide** qué está permitido. |
-| **web** | Nginx | Sirve el build de la SPA, redirige `/api/*` a la API y termina TLS. Al compartir dominio, no hace falta CORS. |
-| **api** | AdonisJS 7, TypeScript, Lucid, VineJS, `@adonisjs/auth`, Bouncer | API REST, autenticación, autorización, reglas de negocio, historial y agente de IA. |
+| **SPA** | React 19, Vite, TypeScript, React Router | Interfaz de sesión, creación, lista con filtros y detalle con comentarios e historial. Muestra solo las acciones permitidas, pero **no decide** qué está permitido. |
+| **web** | Nginx | Sirve la SPA y reenvía `/api/*` y `/docs` bajo el mismo origen. El proxy del anfitrión termina TLS. |
+| **api** | AdonisJS 7, TypeScript, Lucid, VineJS, `@adonisjs/auth`, Bouncer | API REST, autenticación, autorización, reglas de negocio e historial. |
 | **db** | PostgreSQL | Persistencia con restricciones de integridad, índices y la prioridad calculada. |
 
 ## 6. Componentes (C4 · nivel 3)
@@ -125,7 +121,7 @@ flowchart TB
     subgraph HTTP["Capa HTTP"]
         Routes["start/routes.ts<br/>Rutas /api/*"]
         MW["Middleware<br/>sesión · CSRF (shield)"]
-        Ctrl["Controllers<br/>Tickets · Transitions · Comments · Auth · Agent"]
+        Ctrl["Controllers<br/>Tickets · Transitions · Auth"]
         Val["Validators<br/>VineJS"]
     end
 
@@ -134,7 +130,6 @@ flowchart TB
         WF["ticket_workflow<br/>Máquina de estados"]
         TS["ticket_service<br/>Crear, listar, detalle"]
         Hist["Historial<br/>ticket_events"]
-        Ag["agent/<br/>Orquestador + tools de solo lectura"]
     end
 
     subgraph Persistencia["Capa de persistencia"]
@@ -146,11 +141,9 @@ flowchart TB
     Ctrl --> Pol
     Ctrl --> TS
     Ctrl --> WF
-    Ctrl --> Ag
     Pol --> WF
     WF --> Hist
     TS --> Hist
-    Ag --> TS
     WF --> Models
     TS --> Models
     Hist --> Models
@@ -198,26 +191,19 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TB
-    Router["routes/<br/>React Router · rutas protegidas por rol"]
-    subgraph Features["features/"]
-        FAuth["auth<br/>login, sesión actual"]
-        FTickets["tickets<br/>lista, filtros, detalle, creación"]
-        FKanban["kanban<br/>tablero, tarjetas, drag and drop"]
-        FAgent["agent<br/>chat con el agente de IA"]
-    end
-    Comp["components/<br/>UI reutilizable"]
-    ApiClient["api/<br/>cliente HTTP + hooks TanStack Query"]
+    Router["app.tsx<br/>React Router"]
+    Auth["features/auth<br/>Sesión y login"]
+    Tickets["features/tickets<br/>Creación, lista, detalle y flujo"]
     Backend["API REST /api/*"]
 
-    Router --> Features
-    Features --> Comp
-    Features --> ApiClient
-    ApiClient --> Backend
+    Router --> Auth
+    Auth --> Tickets
+    Auth --> Backend
+    Tickets --> Backend
 ```
 
-- **Organización por funcionalidad:** cada carpeta de `features/` contiene sus componentes, hooks y tipos.
-- **Estado del servidor en TanStack Query** (caché, reintentos, invalidación); no hay un store global para datos del backend. Los filtros viven en la URL.
-- **Actualización optimista** en el Kanban: la tarjeta se mueve al instante y se revierte si la API devuelve error.
+- **Organización por funcionalidad:** cada carpeta agrupa sus componentes y clientes HTTP.
+- **Consultas:** los componentes consultan la API con `fetch`. Los filtros, el orden y la página viven en la URL.
 - **El frontend no replica reglas de negocio:** pregunta a la API qué transiciones están disponibles. La única excepción es la vista previa de la prioridad en el formulario, que replica la fórmula y se comprueba con un test.
 
 ### 6.3 Estructura del repositorio
@@ -234,8 +220,7 @@ AI4Devs-finalproject/
 │   │   │   ├── policies/       # Autorización por rol (Bouncer)
 │   │   │   ├── services/       # Dominio: ticket_workflow, ticket_service, historial
 │   │   │   ├── models/         # Modelos Lucid
-│   │   │   ├── exceptions/     # Errores de dominio y exception handler
-│   │   │   └── agent/          # Agente de IA: cliente LLM y tools de solo lectura
+│   │   │   └── exceptions/     # Errores de dominio y exception handler
 │   │   ├── config/             # Incluida la configuración de adonis-autoswagger
 │   │   ├── database/
 │   │   │   ├── migrations/
@@ -243,16 +228,13 @@ AI4Devs-finalproject/
 │   │   ├── start/routes.ts
 │   │   └── tests/              # unit/ y functional/ (Japa)
 │   └── web/                    # Frontend React 19 + Vite (SPA)
-│       ├── src/
-│       │   ├── api/
-│       │   ├── features/       # auth, tickets, kanban, agent
-│       │   ├── components/
-│       │   ├── routes/
-│       │   └── lib/
-│       └── tests/              # Vitest + Testing Library + MSW
+│       └── src/
+│           ├── app.tsx         # Entrada del enrutado
+│           ├── features/       # Sesión y tickets, con sus clientes HTTP y tests
+│           └── app.css         # Estilos de la SPA
 ├── e2e/                        # Playwright
 ├── docker/                     # Dockerfiles y configuración de Nginx
-├── docker-compose.yml
+├── compose.*.yml              # Desarrollo, pruebas y despliegue
 ├── docs/adr/                   # ADRs (MADR)
 ├── PRD/                        # Requisitos de producto
 ├── ARQUITECTURA.md             # Este documento
@@ -355,7 +337,7 @@ sequenceDiagram
     end
 ```
 
-### 7.4 Consulta al agente de IA (should-have)
+### 7.4 Diseño futuro de la consulta al agente de IA
 
 ```mermaid
 sequenceDiagram
@@ -408,7 +390,7 @@ Principios de diseño de datos:
 
 ## 9. API
 
-El contrato de diseño de tickets y el resumen de HU-00 están en la **sección 4 del `readme.md`**. AdonisJS publica el contrato implementado de sesión, creación y detalle de tickets en `/api/openapi.json` y la referencia Scalar en `/docs`. El build genera el JSON con `adonis-autoswagger` y lo copia como artefacto. El navegador carga el script de Scalar desde el mismo origen.
+El contrato de diseño de tickets y el resumen de la implementación están en la **sección 4 del `readme.md`**. AdonisJS publica el contrato implementado de sesión, creación, listado, detalle y flujo en `/api/openapi.json` y la referencia Scalar en `/docs`. El build genera el JSON con `adonis-autoswagger` y lo copia como artefacto. El navegador carga el script de Scalar desde el mismo origen.
 
 Convenciones:
 - Rutas bajo `/api`, recursos en plural (`/tickets`) y acciones de flujo como subrecurso (`/tickets/:id/transitions`).
@@ -435,7 +417,6 @@ flowchart LR
         Nginx -- "/api/*" --> Api
         Api --> Pg
     end
-    Api -. "opcional" .-> LLM["Proveedor LLM autoalojado en producción"]
 ```
 
 | Entorno | Cómo se ejecuta |
@@ -469,7 +450,7 @@ La CI también bloquea los hallazgos de Gitleaks en los commits introducidos y l
 
 ### 11.2 Gestión de errores
 
-Errores de dominio tipados en los servicios, traducidos a HTTP en un único *exception handler*. La SPA muestra el `message` y, en el Kanban, revierte la acción.
+Errores de dominio tipados en los servicios, traducidos a HTTP en un único *exception handler*. La SPA muestra el mensaje y recarga el detalle ante un conflicto de revisión.
 
 ### 11.3 Concurrencia
 
@@ -483,10 +464,10 @@ Logs estructurados en JSON (logger de AdonisJS) con id de petición, usuario y t
 
 | Nivel | Herramienta | Qué cubre |
 |-------|-------------|-----------|
-| Unitario | Japa | Máquina de estados (todas las combinaciones estado × destino × rol) y cálculo de la prioridad. |
-| Integración / funcional | Japa + PostgreSQL de test | Endpoints de la API, permisos y códigos de error; restricciones de la base de datos. |
-| Componentes | Vitest + Testing Library + MSW | Formularios, filtros y comportamiento del Kanban ante errores. |
-| End-to-end | Playwright | Chromium verifica la sesión y el recorrido de creación, autoasignación, inicio, resolución y cierre por el reportero con cuentas separadas. La web, la API y PostgreSQL temporal se ejecutan en Compose. |
+| Unitario | Japa | Máquina de estados y permisos por rol. |
+| Integración / funcional | Japa + PostgreSQL de test | Endpoints, permisos, restricciones de datos y cálculo de prioridad al crear tickets. |
+| Componentes | Vitest + Testing Library | Sesión, formulario, detalle y acciones de flujo. |
+| End-to-end | Playwright | Chromium verifica la sesión y el recorrido de creación, autoasignación, inicio, resolución y cierre por el reportero con cuentas separadas. También verifica el listado de los tres roles y el regreso al listado filtrado. La web, la API y PostgreSQL temporal se ejecutan en Compose. |
 
 ### 11.6 Calidad y documentación
 

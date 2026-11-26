@@ -27,7 +27,7 @@ No es un clon genérico de JSM: no hay tipos de issue, formularios ni workflows 
 **La fuente de verdad de los requisitos es [`PRD/PRD.md`](PRD/PRD.md)**: alcance, campos, cálculo de prioridad, flujo de estados y permisos, incluidos los puntos pendientes. Resumen:
 
 - **Tipo de ticket:** `Request` (único).
-- **Alcance:** creación, consulta, actualización y cancelación de tickets, lista, Kanban, detalle, filtros (en lista y Kanban) y explotación de la información mediante un **agente de IA** (dashboards: por decidir).
+- **Alcance de la entrega final:** sesión por roles, creación, lista con filtros, detalle con lectura de comentarios e historial, asignación y transiciones. El Kanban, el agente de IA, el dashboard, la edición de campos y la escritura de comentarios figuran en el PRD como trabajo posterior.
 - **Campos:** id, tipo, título, descripción, reporter, assignee, estado, fecha de creación, urgencia (1-5), impacto (1-5), prioridad (automática, 1-5, a partir de urgencia × impacto), historial (automático) y comentarios con fecha.
 - **Flujo:** `Open → Assigned → In progress → Solved → Closed`, con los estados alternativos `Pending user` y `Canceled`.
 
@@ -144,8 +144,8 @@ Es **obligatorio** y es uno de los tres ejes de evaluación. Ya no se trata solo
 
 - **Backend:** AdonisJS 7 con Lucid (ORM), VineJS (validación), `@adonisjs/auth` con guard de sesión (cookie `HttpOnly`) y `@adonisjs/bouncer` (autorización por rol). Capas: controllers finos → `app/services/` (dominio: máquina de estados, prioridad, historial) → modelos. Las reglas de flujo y permisos viven solo en los servicios y las políticas, nunca en el frontend.
 - **Contrato de la API:** rutas bajo `/api`, JSON con claves en *camelCase*, errores de validación en formato VineJS (`422`) y errores de negocio como `{ code, message }`. El contrato de diseño está en la sección 4 del `readme.md`.
-- **Frontend:** React Router, TanStack Query y dnd-kit (Kanban). Estructura por funcionalidad en `src/features/`.
-- **Agente de IA:** módulo `app/agent/` del backend. Usa *tool calling* con herramientas **de solo lectura** que reutilizan los servicios de dominio y respetan los permisos del usuario. Nunca genera SQL libre. El proveedor del LLM es configurable por variables de entorno.
+- **Frontend:** React Router y consultas con `fetch`. La sesión y los tickets se organizan por funcionalidad en `src/features/`. Los filtros, el orden y la página se guardan en la URL.
+- **Agente de IA previsto:** el ADR propone herramientas de solo lectura sujetas a los permisos del usuario. El proveedor y el modelo quedan pendientes.
 - **Tests:** Japa (unitarios y funcionales de la API), Vitest + Testing Library (componentes), Playwright (E2E).
 - **Infraestructura:** Docker Compose con tres servicios (`web` con Nginx, `api`, `db` con PostgreSQL). CI con GitHub Actions.
 - **Estructura:** monorepo con npm workspaces: `apps/api`, `apps/web`, `e2e/`, `docker/`. La estructura completa está en la sección 2.3 del `readme.md`.

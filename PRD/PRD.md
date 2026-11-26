@@ -186,6 +186,8 @@ El detalle está en la sección 2 del `readme.md` y las decisiones justificadas 
 
 ## 10. Plan por entregas
 
+La tabla conserva la planificación original. La entrega final incluye HU-00 a HU-04 y verifica el despliegue con Docker Compose. HU-05 (Kanban), HU-06 (agente de IA) y HU-07 (dashboard) permanecen en el backlog, junto con la edición de campos y el envío de comentarios. El detalle permite leer comentarios ya registrados.
+
 | Entrega | Objetivo | Historias |
 |---------|----------|-----------|
 | 2 · 22/10/2026 | Un usuario abre un ticket y un operador lo lleva hasta resuelto, de principio a fin. | HU-00, HU-01, HU-03, HU-04 |

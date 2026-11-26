@@ -1,6 +1,6 @@
 ## Context
 
-La SPA y la API comparten origen mediante el proxy. El [ADR de autenticación](../../../docs/adr/20260924-autenticacion-por-sesion-con-cookie.md) define el guard de sesión, los atributos de la cookie y la invalidación en el servidor.
+La SPA y la API comparten origen mediante el proxy. El [ADR de autenticación](../../../../docs/adr/20260924-autenticacion-por-sesion-con-cookie.md) define el guard de sesión, los atributos de la cookie y la invalidación en el servidor.
 
 ## Goals / Non-Goals
 
