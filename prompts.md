@@ -288,3 +288,5 @@ Pasaron Biome, TypeScript, las 23 pruebas de Japa y las dos de Vitest. La instal
 **Borrador de detalle (PED-81).** Codex trasladó la visibilidad aprobada en el PRD al change de HU-03 y enlazó los criterios del README, los escenarios, el contrato y el diseño. Marcó pendientes de revisión el recorrido de consulta, la respuesta agregada, el orden cronológico y el estado sin comentarios. El borrador pasó la validación estricta de OpenSpec.
 
 El autor confirmó para HU-03 la consulta desde la URL o al recargar, la respuesta agregada, el orden de más antiguo a más reciente y el mensaje cuando aún no hay comentarios.
+
+**Prueba roja del detalle (PED-82).** Codex reutilizó la preparación de cuentas y sesiones de las pruebas de creación. Japa creó el ticket con una sesión real y PostgreSQL aislado. La consulta posterior esperaba `200` con el detalle y el evento original, y devolvió `404` porque la ruta aún no existe. Pasaron las otras 31 pruebas de Japa y las nueve de Vitest.

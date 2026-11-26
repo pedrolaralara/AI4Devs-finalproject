@@ -4,7 +4,7 @@
 
 ## 2. Implementación (PED-27)
 
-- [ ] 2.1 Empezar con una prueba roja de Japa de consulta del ticket y cubrir la matriz de visibilidad.
-- [ ] 2.2 Implementar el contrato HTTP y contrastarlo con el OpenAPI generado.
-- [ ] 2.3 Integrar el detalle en React con pruebas de carga, recarga y errores.
-- [ ] 2.4 Verificar la consulta desde el navegador y actualizar la documentación y el registro de IA.
+- [x] 2.1 Ejecutar la primera prueba roja de Japa de consulta del ticket y su evento de creación (PED-82).
+- [ ] 2.2 Implementar el contrato HTTP, cubrir la matriz de visibilidad y contrastarlo con el OpenAPI generado (PED-83).
+- [ ] 2.3 Integrar el detalle en React con pruebas de carga, recarga y errores (PED-84).
+- [ ] 2.4 Verificar la consulta desde el navegador y actualizar la documentación y el registro de IA (PED-85).
