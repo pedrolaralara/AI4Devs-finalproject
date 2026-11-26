@@ -21,19 +21,19 @@
 
 Aplicación web de gestión de tickets que sustituye a **Jira Service Management (JSM) Data Center**, cuyo fin de vida ha anunciado Atlassian, sin migrar a la nube. Está pensada para desplegarse **on-premise**.
 
-A diferencia de JSM, no es una herramienta genérica y configurable. Gestiona **un único tipo de ticket (Request)**, con un formulario fijo y un flujo de estados fijo (`Open → Assigned → In progress → Solved → Closed`, más `Pending user` y `Canceled`). Hay tres roles: el **usuario** abre sus peticiones, el **operador** las atiende y el **supervisor** las reparte y supervisa. Los tickets se consultan en lista, en Kanban y en detalle. La prioridad se calcula automáticamente a partir de la urgencia y el impacto, y un **agente de IA** permite explotar la información de los tickets.
+Requesto gestiona **un único tipo de ticket (Request)**, con un formulario fijo y un flujo de estados fijo (`Open → Assigned → In progress → Solved → Closed`, más `Pending user` y `Canceled`). El **peticionario** abre y sigue sus peticiones, el **operador** las atiende y el **supervisor** las reparte y supervisa. Los tickets se consultan en lista con filtros y en detalle. La prioridad se calcula automáticamente a partir de la urgencia y el impacto.
 
 **Stack:** React + Vite (SPA), AdonisJS (API REST), PostgreSQL y Biome, todo en TypeScript.
 
 ### **0.4. URL del proyecto:**
 
-Pendiente: la aplicación se desplegará en la entrega final.
+La evidencia de funcionamiento es reproducible en local. Sigue las [instrucciones de instalación](#14-instrucciones-de-instalación) o la [prueba de humo del despliegue](#prueba-de-humo-del-despliegue) con las [cuentas de demostración](#datos-de-desarrollo).
 
 ### 0.5. URL o archivo comprimido del repositorio
 
 https://github.com/pedrolaralara/AI4Devs-finalproject
 
-Rama de esta entrega: `feature/entrega-1-PLL`.
+Rama de esta entrega: [`final-project-PLL`](https://github.com/pedrolaralara/AI4Devs-finalproject/tree/final-project-PLL).
 
 
 ---
@@ -48,9 +48,8 @@ Rama de esta entrega: `feature/entrega-1-PLL`.
 
 **Qué valor aporta:**
 - **Continuidad:** el servicio de tickets sigue funcionando tras el EOL de JSM Data Center.
-- **Control de los datos:** los datos de producción se procesan dentro de la infraestructura de la empresa, también cuando se habilita el agente de IA.
+- **Control de los datos:** la aplicación y PostgreSQL pueden ejecutarse dentro de la infraestructura de la empresa.
 - **Simplicidad:** sin configuración de tipos de issue, esquemas ni workflows que nadie usa.
-- **Explotación de la información con IA:** un agente de IA responde preguntas sobre los tickets en lenguaje natural, sin tener que construir informes a mano.
 
 **Para quién:**
 
@@ -110,35 +109,30 @@ El operador asignado o un supervisor retoman manualmente un ticket en `Pending u
 | Acción | Usuario | Operador | Supervisor |
 |--------|:-------:|:--------:|:--------:|
 | Abrir un ticket | ✅ | | ✅ |
-| Comentar en un ticket | ✅ | ✅ | ✅ |
 | Asignarse un ticket | | ✅ | |
 | Asignar un ticket a otro operador | | | ✅ |
 | Pasar a *In progress*, *Pending user* o *Solved* | | ✅ | ✅ |
 | Cancelar un ticket | ✅ | ✅ | ✅ |
 | Cerrar un ticket resuelto | ✅ (los suyos) | | ✅ (los suyos) |
 
-El peticionario consulta los tickets que ha abierto. El operador consulta los que tiene asignados y los `Open` sin asignar. El supervisor consulta todos. La regla se aplica a la lista, el detalle, los comentarios, el historial y la consulta de transiciones disponibles. El reportero puede editar título, descripción, urgencia e impacto mientras el ticket esté en `Open`. La prioridad se recalcula automáticamente si cambia la urgencia o el impacto. Véase [Roles y permisos en el PRD](PRD/PRD.md#7-roles-y-permisos).
+El peticionario consulta los tickets que ha abierto. El operador consulta los que tiene asignados y los `Open` sin asignar. El supervisor consulta todos. La regla se aplica a la lista, el detalle, la lectura de comentarios, el historial y las transiciones disponibles. El PRD recoge también la edición de campos y la escritura de comentarios como trabajo pendiente. Véase [Roles y permisos en el PRD](PRD/PRD.md#7-roles-y-permisos).
 
 #### Funcionalidades
 
 **Base técnica (requisito de todas las funcionalidades):** autenticación y roles. Cada persona accede con su cuenta, y la aplicación muestra y permite solo lo que corresponde a su rol.
 
-**Must-have (MVP):**
+**Funcionalidades entregadas:**
 
 1. **Crear un ticket.** El usuario rellena título, descripción, urgencia e impacto. El sistema asigna id, reporter, fecha, estado `Open` y prioridad.
-2. **Lista de tickets con filtros.** Tabla de tickets filtrable por estado, prioridad, assignee y reporter, y con búsqueda por texto.
+2. **Lista de tickets con filtros.** Listado filtrable por estado, prioridad, operador asignado y peticionario, con búsqueda por texto, orden y paginación.
 3. **Detalle del ticket.** Todos los campos, comentarios e historial, más las acciones de flujo disponibles para el rol del usuario.
 4. **Gestión del flujo.** Asignación, cambios de estado y cierre, validados en el backend según el flujo y los permisos de cada rol. Cada cambio queda en el historial.
-5. **Kanban de tickets.** Una columna por estado, con los mismos filtros que la lista y cambios de estado arrastrando las tarjetas (siempre respetando el flujo y los permisos).
 
-**Should-have:**
-
-6. **Agente de IA para explotar la información.** El supervisor (y el operador) pregunta en lenguaje natural, por ejemplo "¿cuántos tickets de prioridad 5 siguen abiertos?" o "¿qué operador tiene más carga?", y el agente responde consultando los datos a través de la API.
-7. **Dashboard.** Indicadores de volumen, estado y prioridad de los tickets. Queda por decidir si serán dashboards propios o si los generará también el agente de IA.
+**Backlog de producto.** Kanban (HU-05), agente de IA (HU-06) y dashboard (HU-07).
 
 ### **1.3. Diseño y experiencia de usuario:**
 
-Se completará en la entrega final, con capturas o vídeo de la aplicación funcionando.
+La sesión muestra el nombre y el rol y da acceso al listado. Peticionarios y supervisores también tienen el enlace **Crear ticket**. El formulario muestra una estimación de la prioridad antes de guardar. El detalle reúne el estado, los comentarios disponibles, el historial y las acciones que devuelve la API. Al volver del detalle se conserva la consulta del listado.
 
 ### **1.4. Instrucciones de instalación:**
 
@@ -229,7 +223,7 @@ Playwright automatiza este recorrido y comprueba por separado que la sesión se 
 
 ## 2. Arquitectura del Sistema
 
-> Esta sección resume la arquitectura para la entrega. El documento completo (atributos de calidad, componentes, flujos de login y del agente de IA, despliegue, conceptos transversales y riesgos) está en [`ARQUITECTURA.md`](ARQUITECTURA.md).
+> Esta sección resume la arquitectura para la entrega. El documento completo (atributos de calidad, componentes, flujos de sesión y tickets, despliegue, conceptos transversales y riesgos) está en [`ARQUITECTURA.md`](ARQUITECTURA.md).
 
 ### **2.1. Diagrama de arquitectura:**
 
@@ -243,12 +237,10 @@ flowchart LR
     Op["👤 Operador<br/>[Persona]<br/>Atiende las peticiones"]
     Sup["👤 Supervisor<br/>[Persona]<br/>Reparte y supervisa"]
     Sys["Requesto<br/>[Sistema de software]<br/>Gestión de tickets de tipo Request, on-premise"]
-    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
-    Req -- "Crea, comenta, cancela y cierra tickets" --> Sys
+    Req -- "Crea, cancela y cierra tickets" --> Sys
     Op -- "Se asigna y resuelve tickets" --> Sys
     Sup -- "Asigna tickets y consulta información" --> Sys
-    Sys -- "Preguntas + herramientas de solo lectura" --> LLM
 ```
 
 #### Nivel 2-3 · Contenedores y componentes
@@ -256,7 +248,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph Cliente["Navegador"]
-        SPA["SPA React + Vite<br/>(lista, Kanban, detalle, chat IA)"]
+        SPA["SPA React + Vite<br/>(lista, detalle, creación)"]
     end
 
     subgraph OnPrem["Infraestructura on-premise"]
@@ -265,23 +257,18 @@ flowchart LR
             Ctrl["Controllers<br/>+ validadores VineJS"]
             Auth["Auth (sesión)<br/>+ políticas Bouncer"]
             Svc["Servicios de dominio<br/>(tickets, flujo, prioridad)"]
-            Agent["Módulo agente IA<br/>(tools de solo lectura)"]
             ORM["Modelos Lucid (ORM)"]
         end
         DB[("PostgreSQL")]
     end
 
-    LLM["Proveedor LLM<br/>Autoalojado en producción"]
 
     SPA -- "HTTPS · JSON" --> Proxy
     Proxy -- "/api/*" --> Ctrl
     Ctrl --> Auth
     Ctrl --> Svc
-    Ctrl --> Agent
-    Agent --> Svc
     Svc --> ORM
     ORM --> DB
-    Agent -- "prompt + tools" --> LLM
 ```
 
 #### Flujo principal · cambio de estado de un ticket
@@ -328,7 +315,7 @@ sequenceDiagram
 
 **Por qué esta arquitectura:**
 - **El dominio es pequeño y cerrado** (un tipo de ticket, un flujo fijo). Un monolito bien organizado es suficiente, y los microservicios solo añadirían complejidad operativa en un despliegue on-premise.
-- **Una sola API para todos los consumidores.** La SPA y el agente de IA usan los mismos servicios de dominio, así que las reglas de permisos y de flujo se aplican igual en ambos casos.
+- **Una sola API para todos los consumidores.** La SPA consulta la misma API para listar, ver y gestionar los tickets. El servidor aplica las reglas de visibilidad y flujo.
 - **Reglas de negocio en el backend.** El frontend solo muestra las acciones permitidas; la validación real (transiciones, permisos, cálculo de prioridad) ocurre siempre en el servidor.
 - **Reglas críticas también en la base de datos.** Restricciones `CHECK` y FK, y la prioridad como columna generada: los datos son correctos aunque falle una capa superior.
 - **Despliegue on-premise sencillo:** tres contenedores (proxy, API y base de datos) sin servicios gestionados de la nube.
@@ -355,16 +342,15 @@ sequenceDiagram
 
 | Componente | Tecnología | Responsabilidad |
 |------------|------------|-----------------|
-| **Frontend (SPA)** | React 19, Vite, TypeScript, React Router, TanStack Query, dnd-kit | Interfaz de usuario: login, lista con filtros, Kanban con arrastrar y soltar, detalle del ticket con comentarios e historial, formulario de creación y chat con el agente de IA. Muestra solo las acciones permitidas para el rol. |
+| **Frontend (SPA)** | React 19, Vite, TypeScript, React Router | Interfaz de usuario: sesión, lista con filtros, detalle con comentarios e historial, formulario de creación y gestión del flujo. Muestra solo las acciones permitidas para el rol. |
 | **API REST** | AdonisJS 7, TypeScript | Expone los endpoints `/api/*`. Controllers finos que validan la entrada y delegan en los servicios. |
 | **Validación** | VineJS (incluido en AdonisJS) | Valida los cuerpos de las peticiones (p. ej. urgencia e impacto entre 1 y 5). |
 | **Autenticación** | `@adonisjs/auth` con guard de sesión | Login con email y contraseña. La cookie `HttpOnly` identifica una sesión almacenada en PostgreSQL. |
-| **Autorización** | `@adonisjs/bouncer` | Políticas por rol: quién puede ver, comentar, asignar o cambiar de estado un ticket. |
+| **Autorización** | `@adonisjs/bouncer` | Políticas por rol: quién puede ver, crear, asignar o cambiar de estado un ticket. |
 | **Servicios de dominio** | TypeScript | Reglas de negocio: máquina de estados del ticket, cálculo de la prioridad, registro del historial. |
 | **ORM** | Lucid (incluido en AdonisJS) | Modelos, relaciones, migraciones y seeders sobre PostgreSQL. |
 | **Base de datos** | PostgreSQL | Persistencia de usuarios, tickets, comentarios e historial. |
-| **Agente de IA** | Módulo del backend + LLM con *tool calling* | Recibe preguntas en lenguaje natural y las responde llamando a herramientas de solo lectura (buscar tickets, contar por estado o prioridad, carga por operador), que reutilizan los servicios de dominio y respetan los permisos del usuario. |
-| **Reverse proxy** | Nginx | Sirve los estáticos de la SPA y redirige `/api/*` a la API. Termina TLS. |
+| **Reverse proxy** | Nginx | Sirve la SPA y reenvía `/api/*` y `/docs`. El proxy del anfitrión termina TLS. |
 | **Calidad de código** | Biome | Lint y formato en todo el monorepo. |
 | **Documentación de la API** | `adonis-autoswagger` + Scalar | Genera la especificación OpenAPI a partir de las rutas, los validadores y los comentarios de los controllers, y la publica en `/docs`. |
 
@@ -382,8 +368,7 @@ AI4Devs-finalproject/
 │   │   │   ├── policies/       # Autorización por rol (Bouncer)
 │   │   │   ├── services/       # Lógica de dominio: flujo, prioridad, historial
 │   │   │   ├── models/         # Modelos Lucid (User, Ticket, Comment, TicketEvent)
-│   │   │   ├── exceptions/     # Errores de dominio y exception handler
-│   │   │   └── agent/          # Agente de IA: cliente LLM y tools de solo lectura
+│   │   │   └── exceptions/     # Errores de dominio y exception handler
 │   │   ├── config/             # Configuración, incluida la de adonis-autoswagger
 │   │   ├── database/
 │   │   │   ├── migrations/     # Esquema de la base de datos
@@ -391,16 +376,13 @@ AI4Devs-finalproject/
 │   │   ├── start/routes.ts     # Definición de rutas /api/*
 │   │   └── tests/              # unit/ y functional/ (Japa)
 │   └── web/                    # Frontend React 19 + Vite (SPA)
-│       ├── src/
-│       │   ├── api/            # Cliente HTTP y hooks de TanStack Query
-│       │   ├── features/       # Módulos por funcionalidad: tickets, kanban, auth, agent
-│       │   ├── components/     # Componentes de UI reutilizables
-│       │   ├── routes/         # Páginas y enrutado (React Router)
-│       │   └── lib/            # Utilidades compartidas
-│       └── tests/              # Tests de componentes (Vitest + Testing Library + MSW)
+│       └── src/
+│           ├── app.tsx         # Entrada del enrutado
+│           ├── features/       # Sesión y tickets, con sus clientes HTTP y tests
+│           └── app.css         # Estilos de la SPA
 ├── e2e/                        # Tests end-to-end (Playwright)
 ├── docker/                     # Dockerfiles y configuración de Nginx
-├── docker-compose.yml          # Entorno local y despliegue on-premise
+├── compose.*.yml              # Desarrollo, pruebas y despliegue
 ├── PRD/                        # Requisitos de producto
 ├── docs/adr/                   # Decisiones de arquitectura (ADRs, formato MADR)
 ├── ARQUITECTURA.md             # Documento completo de arquitectura
@@ -410,8 +392,8 @@ AI4Devs-finalproject/
 └── prompts.md                  # Registro del uso de IA
 ```
 
-- **Backend:** sigue la estructura estándar de AdonisJS, añadiendo una carpeta `services/` para aislar la lógica de dominio de los controllers y de los modelos, y una carpeta `agent/` para el agente de IA.
-- **Frontend:** organizado **por funcionalidad** (`features/`) en lugar de por tipo de fichero, para que cada módulo (tickets, Kanban, agente) tenga juntos sus componentes, hooks y tipos.
+- **Backend:** sigue la estructura estándar de AdonisJS, con una carpeta `services/` que aísla la lógica de dominio de los controllers y modelos.
+- **Frontend:** organizado **por funcionalidad** (`features/`) en lugar de por tipo de fichero, para que cada módulo (sesión y tickets) agrupe sus componentes, clientes HTTP y pruebas.
 
 ### **2.4. Infraestructura y despliegue**
 
@@ -428,7 +410,6 @@ flowchart LR
         Nginx -- "/api/*" --> Api
         Api --> Pg
     end
-    Api -. "opcional" .-> LLM["Proveedor LLM autoalojado en producción"]
 ```
 
 **Proceso de despliegue previsto:**
@@ -453,6 +434,8 @@ curl --fail http://localhost:8080/api/health
 Usa valores exclusivos para la demo y una base nueva. El cambio de `NODE_ENV` se aplica solo al comando de carga de datos sintéticos. En Chromium, abre `http://localhost:8080` y sigue el [flujo principal](#pruebas-del-flujo-principal) con las [cuentas de demostración](#datos-de-desarrollo). Usa la URL de despliegue en los pasos del navegador.
 
 La prueba inicial de despliegue se ejecutó sobre el commit `0b5cb57`. Pasaron los seis E2E en Chromium, incluido el cierre del ticket por su peticionario. La recuperación se verificó en otro proyecto Compose con un volumen nuevo. El ticket de prueba conservó su estado cerrado y `/api/health` respondió correctamente en la instancia restaurada. Tras ajustar el uso de cookies en la demo HTTP local, también se verificó el inicio de sesión en WebKit.
+
+Para comprobar la evidencia de entrega se repitió el arranque desde los archivos versionados del commit `6206dc4`, con variables nuevas y un volumen vacío. La API respondió `{"status":"ok"}`, el seeder cargó las cuentas de prueba y pasaron los seis E2E contra la web compilada.
 
 #### Recuperación de una versión y sus datos
 
@@ -486,17 +469,18 @@ Prácticas previstas:
 - **Autorización en el servidor** con políticas por rol: el frontend oculta acciones, pero es el backend quien las valida. Por ejemplo, un usuario no puede pasar un ticket a *In progress* aunque llame a la API directamente.
 - **Validación de entradas** con VineJS en todos los endpoints.
 - **Sin SQL manual:** consultas a través del ORM (Lucid), con parámetros.
-- **Agente de IA acotado:** solo tiene herramientas de lectura, ejecuta las consultas con los permisos del usuario que pregunta y nunca genera SQL libre. Así se mitigan la inyección de prompts y la fuga de datos.
 - **Secretos en variables de entorno**, fuera del repositorio.
 - **Trazabilidad:** el historial del ticket registra quién cambió qué y cuándo.
 
 ### **2.6. Tests**
 
-Estrategia prevista (se completará con ejemplos reales en la entrega final):
-- **Unitarios (Japa):** máquina de estados (transiciones válidas e inválidas por rol) y cálculo de la prioridad.
-- **Integración/funcionales (Japa + PostgreSQL de test):** endpoints de la API, incluidos los permisos (por ejemplo, que un usuario reciba `403` al intentar asignar un ticket).
+Pruebas que se ejecutan en Docker y GitHub Actions:
+- **Unitarios (Japa):** máquina de estados y permisos por rol.
+- **Integración/funcionales (Japa + PostgreSQL de test):** endpoints de la API, permisos, restricciones de la base de datos y prioridad calculada al crear el ticket.
 - **Componentes (Vitest + Testing Library):** formulario de creación y acciones visibles según el rol.
-- **End-to-end (Playwright):** HU-00 cubre el inicio de sesión, la recarga y el cierre de sesión. Un segundo recorrido comprueba que un peticionario crea un ticket, un operador se lo asigna y lo resuelve, y el reportero lo cierra. La prueba comprueba la fecha de cierre y el historial al recargar (PED-23).
+- **End-to-end (Playwright):** sesión, creación, autoasignación, resolución y cierre. También verifica la visibilidad para los tres roles, la búsqueda y el regreso al listado filtrado desde el detalle.
+
+Consulta los [pasos de prueba manual](#pruebas-del-flujo-principal) y la [CI de la rama final](https://github.com/pedrolaralara/AI4Devs-finalproject/actions/runs/45833369134).
 
 ---
 
@@ -667,9 +651,9 @@ El seeder de desarrollo crea seis cuentas sintéticas: `supervisor@requesto.test
 
 ## 4. Especificación de la API
 
-El contrato cubre la **creación de tickets** (HU-01), el **listado con filtros** (HU-02 y HU-05) y la **consulta y ejecución de transiciones** (HU-04 y HU-05).
+El contrato cubre la sesión, la creación de tickets, el listado con filtros, la consulta de detalle y las acciones de flujo.
 
-La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra con Scalar en `/docs`. En desarrollo se puede abrir en `http://localhost:5173/docs`. El documento describe actualmente HU-00, la creación de tickets de HU-01 y la consulta de HU-03 y se genera con `adonis-autoswagger` a partir de las rutas, validadores y comentarios de los controladores. El build de la API incluye el JSON generado y sirve Scalar desde una dependencia npm local.
+La API publica el **contrato implementado de HU-00 a HU-04** en `/api/openapi.json` y lo muestra con Scalar en `/docs`. En desarrollo se puede abrir en `http://localhost:5173/docs`. Se genera con `adonis-autoswagger` a partir de las rutas, validadores y comentarios de los controladores. El build incluye el JSON generado y sirve Scalar desde una dependencia npm local.
 
 | Operación de HU-00 | Respuesta |
 |---|---|
@@ -680,7 +664,7 @@ La API publica el **contrato implementado** en `/api/openapi.json` y lo muestra 
 
 El detalle de HU-03 usa `GET /api/tickets/:id`. Devuelve los campos, `comments` e `history` en una sola respuesta. El contrato implementado y los esquemas de las colecciones están en el OpenAPI generado. Sin sesión activa devuelve `401`. Un identificador inválido, un ticket inexistente y un ticket fuera de la visibilidad devuelven el mismo `404`.
 
-El flujo de HU-04 publica `GET` y `POST /api/tickets/:id/transitions`. El detalle devuelve `workflowRevision` y el POST espera ese valor como `expectedRevision`. Si la revisión ya cambió, el POST devuelve `409`. La [matriz de HU-04](openspec/changes/manage-ticket-workflow/proposal.md#trazabilidad) enlaza criterios y pruebas.
+El flujo de HU-04 publica `GET` y `POST /api/tickets/:id/transitions`. El detalle devuelve `workflowRevision` y el POST espera ese valor como `expectedRevision`. Si la revisión ya cambió, el POST devuelve `409`. La [matriz de HU-04](openspec/changes/archive/2026-11-26-manage-ticket-workflow/proposal.md#trazabilidad) enlaza criterios y pruebas.
 
 Para asignar o reasignar, un supervisor consulta `GET /api/tickets/:id/eligible-assignees`. Recibe los identificadores y nombres de operadores activos, excluido el asignado actual. El contrato se publica en el OpenAPI generado.
 
@@ -764,7 +748,7 @@ paths:
       summary: Listar tickets con filtros
       description: >
         Devuelve una página de tickets visibles para el usuario de la sesión,
-        filtrados y ordenados. La usan la lista y el Kanban.
+        filtrados y ordenados. La usa el listado de la SPA.
       operationId: listTickets
       parameters:
         - name: status
@@ -1110,7 +1094,7 @@ curl -X POST https://requesto.local/api/tickets/42/transitions \
 | Id | Épica | Historia | Prioridad (MoSCoW) | Estimación | Complejidad / riesgo |
 |----|-------|----------|--------------------|------------|----------------------|
 | HU-00 | E1 | Autenticación y roles (base técnica) | Must | 3 SP | Baja: resuelto por `@adonisjs/auth` y Bouncer. |
-| **HU-01** | E1 | **Crear un ticket** | Must | 3 SP | Baja: CRUD con validación. |
+| **HU-01** | E1 | **Crear un ticket** | Must | 3 SP | Baja: alta con validación. |
 | HU-02 | E1 | Lista de tickets con filtros | Must | 5 SP | Media: combinación de filtros, paginación y búsqueda por texto. |
 | HU-03 | E1 | Detalle del ticket con comentarios e historial | Must | 5 SP | Media: agrega tres fuentes (ticket, comentarios, eventos). |
 | **HU-04** | E1 | **Gestionar el flujo de un ticket** | Must | 8 SP | **Alta**: máquina de estados × roles, transacciones y concurrencia. Es el corazón del dominio. |
@@ -1118,7 +1102,7 @@ curl -X POST https://requesto.local/api/tickets/42/transitions \
 | HU-06 | E2 | Consultar la información de los tickets con un agente de IA | Should | 8 SP | **Alta**: integración con LLM, diseño de herramientas, permisos y proveedor por decidir. |
 | HU-07 | E2 | Dashboard de tickets | Should | 5 SP | Media: depende de la decisión dashboard propio frente a generado por el agente. |
 
-Se documentan en detalle las tres historias en negrita: cubren el ciclo completo del ticket (nace, avanza por el flujo y se visualiza) y de ellas salen los tickets de trabajo de la sección 6.
+En la entrega final están operativas HU-00 a HU-04. HU-05 a HU-07 se mantienen en el backlog. La sección 6 conserva tickets de planificación y ejecución.
 
 **Estimación:** *story points* en escala Fibonacci para historias y tallas de camiseta (S, M, L, XL) para épicas. No se estima en horas. La columna de complejidad existe para que historias con el mismo formato no parezcan igual de sencillas.
 
@@ -1129,6 +1113,8 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 **Leyenda:** los criterios marcados con **(asumido)** no vienen de los requisitos del PRD, sino de supuestos razonables tomados al redactar las historias. Deben confirmarse al concretar los requisitos.
 
 ### Plan por entregas
+
+La tabla conserva el plan original. El alcance entregado se indica en la sección 1.2.
 
 | Entrega | Objetivo | Historias comprometidas | Opcionales (si sobra capacidad) |
 |---------|----------|-------------------------|---------------------------------|
@@ -1157,7 +1143,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 
 **Fuera de alcance**. Alta de usuarios, recuperación de contraseña, SSO, administración de cuentas y políticas específicas de tickets.
 
-**Contexto técnico**. Depende de las cuentas de PED-15. La [matriz de trazabilidad de HU-00](openspec/changes/authenticate-users/proposal.md#trazabilidad) enlaza estos criterios con los escenarios, el contrato HTTP, el diseño y las pruebas. El seguimiento está en [PED-8](https://linear.app/pedrolaralara/issue/PED-8).
+**Contexto técnico**. Depende de las cuentas de PED-15. La [matriz de trazabilidad de HU-00](openspec/changes/archive/2026-11-26-authenticate-users/proposal.md#trazabilidad) enlaza estos criterios con los escenarios, el contrato HTTP, el diseño y las pruebas. El seguimiento está en [PED-8](https://linear.app/pedrolaralara/issue/PED-8).
 
 ---
 
@@ -1174,7 +1160,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 
 **Fuera de alcance**. Escritura de comentarios, cambios en el ticket, listado y Kanban.
 
-**Contexto técnico**. La [propuesta de OpenSpec](openspec/changes/view-ticket-detail/proposal.md) enlaza los escenarios, el contrato y el diseño.
+**Contexto técnico**. La [propuesta de OpenSpec](openspec/changes/archive/2026-11-26-view-ticket-detail/proposal.md) enlaza los escenarios, el contrato y el diseño.
 
 ---
 
@@ -1220,7 +1206,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 **Notas (contexto técnico):**
 - Campos del formulario: título (obligatorio, máximo 200 caracteres), descripción (obligatoria), urgencia (1-5) e impacto (1-5), con una breve explicación de cada nivel.
 - Mientras se rellenan urgencia e impacto, el formulario muestra la prioridad resultante como vista previa. La fuente de verdad es la columna generada en PostgreSQL (ver [ADR](docs/adr/20260924-prioridad-como-columna-generada.md)).
-- Tras crear un ticket, React Router abre `/tickets/:id` y consulta sus datos, comentarios e historial según HU-03. La misma consulta se ejecuta al abrir la URL directamente o recargar. La [matriz de HU-01](openspec/changes/create-request-ticket/proposal.md#trazabilidad) enlaza criterios, contrato y pruebas.
+- Tras crear un ticket, React Router abre `/tickets/:id` y consulta sus datos, comentarios e historial según HU-03. La misma consulta se ejecuta al abrir la URL directamente o recargar. La [matriz de HU-01](openspec/changes/archive/2026-11-26-create-request-ticket/proposal.md#trazabilidad) enlaza criterios, contrato y pruebas.
 - Tickets de trabajo relacionados: REQ-DB-01.
 
 ---
@@ -1557,9 +1543,7 @@ Cada ticket indica su **tipo de trabajo** y aplica la *Definition of Done* de es
 
 > Documenta 3 de las Pull Requests realizadas durante la ejecución del proyecto
 
-**Pull Request 1**
-
-**Pull Request 2**
-
-**Pull Request 3**
+1. [PR #1 · Verificar el disparador de CI](https://github.com/pedrolaralara/AI4Devs-finalproject/pull/1). Borrador de prueba para comprobar los cinco jobs. Se cerró sin fusionar.
+2. [PR #2 · Añadir la lista de tickets con filtros](https://github.com/pedrolaralara/AI4Devs-finalproject/pull/2). Integró HU-02 con visibilidad por rol, OpenSpec y pruebas de Chromium.
+3. [PR #3 · Preparar el despliegue on-premise](https://github.com/pedrolaralara/AI4Devs-finalproject/pull/3). Integró las imágenes, Compose y la documentación de la prueba de humo y recuperación.
 

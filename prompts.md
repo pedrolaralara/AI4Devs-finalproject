@@ -40,7 +40,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
 3. **Sección a sección.** El `readme.md` se redactó en orden (0 → 1 → 2 → 3 → 5 → 6 → 4). En cada paso la IA listaba explícitamente los **supuestos** que había tomado para que el autor los validara, y se hacía commit al cerrar cada bloque.
 4. **Auditoría contra el temario.** Con la documentación ya escrita, se pidió a la IA que leyera los módulos 5 (documentación) y 4 (planificación) del máster, comparara con lo hecho y propusiera correcciones. De ahí salieron los ADRs, los diagramas C4 y de secuencia, las épicas, el plan por entregas, los criterios marcados como "(asumido)", los non-goals y la DoD por tipo de trabajo.
 
-**Entrega 2.** El autor pidió desglosar cada historia o tarea en subtareas de Linear antes de empezar y trabajar en una rama identificada por issue. Codex ejecuta las comprobaciones y presenta el resultado. El autor valida el bloque antes del commit. Para mantener la versión acordada de Node sin cambiar la instalación del Mac, el autor pidió ejecutar Node 24 en Docker.
+**Entregas 2 y 3.** El autor pidió desglosar cada historia o tarea en subtareas de Linear. Codex trabaja en ramas locales por subtarea, ejecuta las comprobaciones y presenta el resultado. El autor valida antes del commit. Para mantener la versión acordada de Node sin cambiar la instalación del Mac, el autor pidió ejecutar Node 24 en Docker. Con la CI operativa, las ramas de historia se revisaron mediante una PR hacia `final-project-PLL`.
 
 ### Ajustes humanos sobre lo que generó la IA
 
@@ -52,7 +52,7 @@ Puedes añadir adicionalmente la conversación completa como link o archivo adju
   - Una **DoD única** para todos los tickets, que el módulo 4 señala como antipatrón. Se sustituyó por DoD por tipo de trabajo.
   - Criterios de aceptación inventados por la IA mezclados con los del autor ("false completeness"). Se marcaron como **(asumido)**.
   - Una contradicción entre la especificación de la API y la HU-04 (qué pasa si un operador asigna a otra persona), detectada y corregida por la propia IA al redactar la sección 4.
-- **Revisión de todos los supuestos:** quedaron abiertas la salida de *Pending user*, la reapertura, la visibilidad, el proveedor LLM, los estados desde los que se puede cancelar un ticket y quién puede editar sus campos y en qué estados. El borrado físico también estaba pendiente en la primera entrega. El autor lo descartó para el MVP al revisar el feedback (véase la sección 7).
+- **Revisión de supuestos:** al finalizar la primera entrega quedaban abiertas la salida de *Pending user*, la reapertura, la visibilidad, el proveedor LLM, la cancelación y la edición de campos. El autor validó las reglas que se usaron para construir el flujo y descartó el borrado físico al revisar el feedback. El [PRD](PRD/PRD.md) recoge las decisiones de producto.
 
 ### Flujos de trabajo representativos
 

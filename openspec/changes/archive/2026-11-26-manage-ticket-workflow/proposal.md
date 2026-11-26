@@ -25,7 +25,7 @@ Ninguna.
 ## Impact
 
 - [HU-04](https://linear.app/pedrolaralara/issue/PED-11), [especificación PED-86](https://linear.app/pedrolaralara/issue/PED-86), [API PED-16](https://linear.app/pedrolaralara/issue/PED-16), [web PED-29](https://linear.app/pedrolaralara/issue/PED-29) y [verificación PED-30](https://linear.app/pedrolaralara/issue/PED-30). El alcance del cierre por el reportero se sigue en [PED-23](https://linear.app/pedrolaralara/issue/PED-23).
-- [Matriz de estados del PRD](../../../PRD/PRD.md#6-flujo-de-estados) y [criterios de HU-04](../../../readme.md#hu-04--gestionar-el-flujo-de-un-ticket).
+- [Matriz de estados del PRD](../../../../PRD/PRD.md#6-flujo-de-estados) y [criterios de HU-04](../../../../readme.md#hu-04--gestionar-el-flujo-de-un-ticket).
 
 ## Trazabilidad
 
@@ -38,4 +38,4 @@ Los criterios enlazan con la [spec y el contrato HTTP](specs/ticket-workflow/spe
 | 9 · Historial | Cambio atómico con autor y fecha. | Japa comprueba marcas de tiempo, rollback y una sola escritura de historial frente a dos reasignaciones con la misma revisión. |
 | 10 · Interfaz | Ofrecer las acciones permitidas. | Japa comprueba el GET y sus esquemas OpenAPI. Vitest comprueba el selector, el historial actualizado, la ausencia de acciones y la recarga tras un conflicto. El E2E usa sesiones separadas para crear, consultar, autoasignar, iniciar, resolver y cerrar. Comprueba que el operador carece de la acción de cierre y que el reportero sí puede ejecutarla. |
 
-[Matriz unitaria](../../../apps/api/tests/unit/ticket_workflow.spec.ts), [API de transiciones en Japa](../../../apps/api/tests/functional/ticket_transitions.spec.ts), [regresión del OpenAPI](../../../apps/api/tests/functional/openapi.spec.ts), [acciones del detalle en Vitest](../../../apps/web/src/features/tickets/ticket-detail.test.tsx) y [flujo hasta cerrado en Playwright](../../../e2e/ticket-creation.spec.ts).
+[Matriz unitaria](../../../../apps/api/tests/unit/ticket_workflow.spec.ts), [API de transiciones en Japa](../../../../apps/api/tests/functional/ticket_transitions.spec.ts), [regresión del OpenAPI](../../../../apps/api/tests/functional/openapi.spec.ts), [acciones del detalle en Vitest](../../../../apps/web/src/features/tickets/ticket-detail.test.tsx) y [flujo hasta cerrado en Playwright](../../../../e2e/ticket-creation.spec.ts).
