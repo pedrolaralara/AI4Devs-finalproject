@@ -260,3 +260,5 @@ La verificación aplicó, revirtió y volvió a aplicar las cinco migraciones. E
 El autor pidió separar la historia, los escenarios funcionales, el contrato HTTP y el diseño, y revisar su consistencia. Codex añadió la historia al README, enlazó sus tres criterios con las otras vistas y dejó la comprobación de trazabilidad en el flujo de trabajo del proyecto.
 
 El autor aprobó el recorrido y los supuestos del contrato al pedir el commit de PED-66.
+
+**Prueba roja de autenticación (PED-70).** Codex escribió en Japa el primer caso de CA-1 con una cuenta activa en PostgreSQL aislado. La ejecución devolvió el `404` esperado frente al `200` del contrato. Las otras 18 pruebas de Japa y las dos de Vitest pasaron. Context7 confirmó las APIs del guard de sesión de AdonisJS 7, Shield y el almacén de sesiones en PostgreSQL. La siguiente subtarea incorporará el intercambio CSRF al caso y verificará la revocación con la cookie anterior al cierre.
