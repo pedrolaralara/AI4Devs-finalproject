@@ -24,4 +24,17 @@ test('creates a request and shows the saved priority', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/tickets/${id}$`))
   await expect(page.getByRole('heading', { name: `${key} · Acceso E2E` })).toBeVisible()
   await expect(page.getByText('4 de 5', { exact: true })).toBeVisible()
+
+  await page.reload()
+  await expect(page.getByRole('heading', { name: `${key} · Acceso E2E` })).toBeVisible()
+  await expect(page.getByText('4 de 5', { exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Comentarios' })).toContainText(
+    'Todavía no hay comentarios.',
+  )
+  await expect(page.getByRole('region', { name: 'Historial' })).toContainText('Ticket creado')
+
+  const direct = await page.context().newPage()
+  await direct.goto(`/tickets/${id}`)
+  await expect(direct.getByRole('heading', { name: `${key} · Acceso E2E` })).toBeVisible()
+  await expect(direct.getByRole('region', { name: 'Historial' })).toContainText('Ticket creado')
 })

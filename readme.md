@@ -199,7 +199,7 @@ docker compose -f compose.test.yml up --abort-on-container-exit --exit-code-from
 
 Este comando instala las dependencias desde el lockfile y propaga el código de salida de las pruebas. La suite de Japa usa `requesto_test`, una instancia de PostgreSQL con almacenamiento temporal separada de desarrollo. Vitest prueba la web con Testing Library y simula la respuesta HTTP. Puedes retirar los contenedores detenidos con `docker compose -f compose.test.yml down`.
 
-Para ejecutar los E2E de autenticación y creación de tickets con Chromium, usa un proyecto Compose separado:
+Para ejecutar los E2E de autenticación, creación y consulta de tickets con Chromium, usa un proyecto Compose separado:
 
 ```bash
 docker compose -p requesto-e2e -f compose.dev.yml -f compose.e2e.yml run --rm -T node npm ci
