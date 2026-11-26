@@ -445,6 +445,8 @@ flowchart LR
 | **On-premise** | Docker Compose con `web`, `api` y `db`. Las migraciones se ejecutan al arrancar la API. |
 | **Demo (entrega final)** | El mismo `docker-compose.yml` en un servidor con URL pública. |
 
+La CI también bloquea los hallazgos de Gitleaks en los commits introducidos y las vulnerabilidades altas o críticas del lockfile de npm.
+
 **Proceso de despliegue:**
 1. Merge a la rama principal → CI construye las imágenes de `web` y `api`.
 2. En el servidor: se actualizan las imágenes y se ejecuta `docker compose up -d`.

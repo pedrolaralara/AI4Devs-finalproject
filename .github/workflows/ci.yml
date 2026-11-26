@@ -79,3 +79,40 @@ jobs:
           path: test-results/e2e/**/trace.zip
           if-no-files-found: ignore
           retention-days: 7
+
+  secrets:
+    name: Detección de secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obtener el historial
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Analizar los commits introducidos con Gitleaks
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" =~ ^0+$ ]]; then
+            BASE_SHA=$(git merge-base HEAD "refs/remotes/origin/$DEFAULT_BRANCH")
+          fi
+          docker run --rm --user "$(id -u):$(id -g)" --volume "$PWD:/repo:ro" --workdir /repo \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 git --redact --no-banner --log-opts="$BASE_SHA..HEAD" .
+
+  dependencies:
+    name: Análisis de dependencias
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Preparar Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Auditar el lockfile de npm
+        run: npm audit --package-lock-only --audit-level=high
