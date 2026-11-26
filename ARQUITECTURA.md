@@ -441,7 +441,7 @@ flowchart LR
 | Entorno | Cómo se ejecuta |
 |---------|-----------------|
 | **Local** | `docker compose -f compose.dev.yml up api web` arranca también PostgreSQL con volumen persistente. La web consulta `/api/health` a través de Vite y AdonisJS comprueba PostgreSQL. |
-| **CI** | El workflow inicial ejecuta `npm ci`, `npm run check` y `npm run build` con Node 24. Se dispara en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. Las suites automatizadas se incorporan en PED-100. |
+| **CI** | GitHub Actions ejecuta comprobaciones y compilación con Node 24, Japa y Vitest con PostgreSQL temporal y los E2E con Chromium. Se dispara en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. Si falla Playwright, las trazas disponibles se guardan como artefacto durante siete días. |
 | **On-premise** | Docker Compose con `web`, `api` y `db`. Las migraciones se ejecutan al arrancar la API. |
 | **Demo (entrega final)** | El mismo `docker-compose.yml` en un servidor con URL pública. |
 

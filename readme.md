@@ -415,7 +415,7 @@ flowchart LR
 ```
 
 **Proceso de despliegue previsto:**
-1. El workflow inicial de GitHub Actions ejecuta `npm ci`, `npm run check` y `npm run build` con Node 24 en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. La integración de las suites de pruebas queda en PED-100.
+1. GitHub Actions ejecuta `npm ci`, `npm run check`, `npm run build` y las suites de Japa, Vitest y Playwright en PR hacia `main` o `final-project-PLL` y en pushes a `final-project-PLL`. Los jobs de pruebas reutilizan los archivos Compose documentados en la sección 1.4. Si falla Playwright, las trazas disponibles se pueden descargar durante siete días.
 2. Al integrar en la rama principal se construyen las imágenes Docker de `web` y `api`.
 3. En el servidor se actualizan las imágenes y se levanta el stack con `docker compose up -d`. La API ejecuta las migraciones pendientes al arrancar.
 4. La configuración (credenciales de la base de datos, clave de la aplicación, proveedor y clave del LLM) se inyecta mediante variables de entorno, nunca en el repositorio.

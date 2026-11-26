@@ -42,3 +42,40 @@ jobs:
           DB_PASSWORD: requesto_ci
           DB_DATABASE: requesto_ci
         run: npm run build
+
+  unit-and-integration:
+    name: Pruebas unitarias y de integración
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Ejecutar Japa y Vitest
+        run: docker compose -f compose.test.yml up --abort-on-container-exit --exit-code-from tests
+
+  e2e:
+    name: Pruebas E2E con Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      COMPOSE_PROJECT_NAME: requesto-ci-e2e
+      COMPOSE_FILE: compose.dev.yml:compose.e2e.yml
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Instalar dependencias
+        run: docker compose run --rm -T node npm ci
+      - name: Ejecutar Playwright
+        run: docker compose run --rm -T e2e
+      - name: Guardar trazas si falla Playwright
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces
+          path: test-results/e2e/**/trace.zip
+          if-no-files-found: ignore
+          retention-days: 7
