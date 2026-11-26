@@ -46,16 +46,8 @@ En código se usa `requester` en lugar de `user` para no confundir el rol con la
 | Entrega | Estado |
 |---------|--------|
 | 1 · Documentación técnica | ✅ **Entregada el 24/09/2026** (PR desde `feature/entrega-1-PLL` y formulario enviado). |
-| 2 · Código funcional | **En curso:** montaje del entorno en PED-25. Plazo ordinario: 22/10/2026. |
-| 3 · Entrega final | Pendiente. Prórroga aprobada hasta el 26/11/2026. |
-
-**No generes scaffolding ni código de aplicación** hasta que el autor arranque la entrega 2 y lo pida. Al arrancarla:
-
-1. Crear la rama `feature/entrega-2-PLL` y no volver a hacer commits en `feature/entrega-1-PLL`, porque su PR ya está entregada.
-2. Actualizar esta sección y la de "Entrega 2 en detalle".
-3. Instalar Context7 MCP (ver "Documentación").
-4. Cerrar los puntos abiertos del PRD que afectan a HU-04: salida de *Pending user*, reapertura, visibilidad por rol y edición de campos.
-5. Recomendado: mover la copia local de trabajo fuera de iCloud Drive antes de instalar dependencias (ver "Notas del entorno").
+| 2 · Código funcional | Rama `feature/entrega-2-PLL` publicada hasta `c54df96`. Pendiente de que el autor envíe el formulario. |
+| 3 · Entrega final | En curso en la rama local `final-project-PLL`, que incorpora la verificación del cierre por el peticionario. Prórroga aprobada hasta el 26/11/2026. |
 
 Objetivo de la entrega 2 (sección 5 del `readme.md`): *un usuario abre un ticket y un operador lo lleva hasta resuelto, de principio a fin*, con HU-00, HU-01, HU-03 y HU-04.
 
@@ -67,7 +59,7 @@ Objetivo de la entrega 2 (sección 5 del `readme.md`): *un usuario abre un ticke
 | 2 | **Código funcional:** backend, frontend y BD conectados. El flujo principal operativo, aunque no esté 100 % completo. | `feature/entrega-2-PLL` | Jueves 22/10/2026 |
 | 3 | **Entrega final:** código funcional + tests (unitarios, integración, E2E) + despliegue + documentación de IA (`prompts.md`) + evidencia de funcionamiento. | `final-project-PLL` | Jueves 12/11/2026 |
 
-Las entregas 1 y 2 tienen **revisión automatizada**. Solo la entrega final recibe feedback humano personalizado.
+Según el checklist de la edición, las entregas 1 y 3 reciben feedback personalizado con revisión híbrida humana e IA. La entrega 2 carece de feedback formal.
 
 ### Criterios de evaluación
 
@@ -103,13 +95,12 @@ Opcional, pero recomendable adelantarlo: especificación de la API (sección 4, 
 
 Además, conviene ir registrando en `prompts.md` los prompts usados para generar esta documentación.
 
-Para cerrar la entrega, el alumno abre la **pull request** de la rama y rellena el formulario de entrega indicando la URL de esa PR. En el repositorio oficial, en la sección de Pull Requests, hay ejemplos de entregas de ediciones anteriores.
-
 ### Cómo se entrega
 
 - El repositorio es un **fork** del repositorio oficial `AI4Devs-finalproject`.
 - Cada entrega va en su propia rama, con las iniciales del alumno (**PLL**). Los nombres de rama de la tabla son obligatorios: sin las iniciales la entrega no se puede identificar.
-- Tras cada entrega, el alumno rellena el formulario de entrega del máster (Typeform): nombre, email, tipo de entrega y **URL de la pull request**. Sin formulario, la entrega no existe formalmente. Lo hace el alumno, no un agente.
+- Para las entregas 2 y 3, publica la rama correspondiente en GitHub. El alumno envía la **URL directa de la rama** en el [Typeform del máster](https://lidr.typeform.com/proyectoai4devs) con el mismo correo del calendario de formación. El formulario formaliza cada entrega y el máster prescinde de la PR de entrega.
+- Para la entrega final, el README debe reflejar el producto implementado e incluir instrucciones de verificación y credenciales de prueba. El máster admite como evidencia una URL pública, un vídeo de 2–3 minutos o el acceso al repositorio con credenciales claras para una revisión local. Consulta el [checklist oficial](https://training.lidr.co/posts/ai4devs-202606-rookies-%F0%9F%A7%91%F0%9F%8F%BB%F0%9F%92%BB-leccion-3-checklist-de-cierre-y-entrega-final-9-min).
 - Si no se llega a la fecha final, se puede pedir una prórroga de hasta 2 semanas (hasta el jueves 26/11/2026), con antelación y al TA.
 
 ### Qué debe contener `prompts.md`
