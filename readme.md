@@ -142,6 +142,8 @@ Se completará en la entrega final, con capturas o vídeo de la aplicación func
 
 ### **1.4. Instrucciones de instalación:**
 
+Tras iniciar sesión, selecciona **Ver tickets** para consultar los tickets visibles para tu rol y abrir su detalle. Puedes combinar filtros, cambiar el orden y navegar entre páginas. El listado conserva la consulta en la URL al volver desde un detalle.
+
 Para usar Node 24 y npm con Docker Desktop, ejecuta desde la raíz:
 
 ```bash
@@ -1257,6 +1259,18 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 ---
 
 **Historia de Usuario 3**
+
+#### HU-02 · Lista de tickets con filtros
+
+Como peticionario, operador o supervisor, quiero encontrar los tickets que puedo consultar y abrir su detalle desde la lista.
+
+- **CA-1 · Visibilidad.** Dado que he iniciado sesión, cuando abro **Ver tickets**, entonces solo aparecen los tickets que mi rol puede consultar según el PRD.
+- **CA-2 · Filtros.** Dados varios tickets visibles, cuando combino estados, prioridades, asignación, peticionario o texto, entonces se muestran y cuentan los que coinciden. La búsqueda usa el título y la descripción.
+- **CA-3 · Navegación.** Dado un listado filtrado, cuando cambio el orden o avanzo de página y abro un ticket, entonces puedo volver al listado con la misma consulta y página.
+
+**Fuera de alcance.** El tablero Kanban, la edición desde la lista y las exportaciones.
+
+**Contexto técnico.** [Historia en Linear](https://linear.app/pedrolaralara/issue/PED-12), [OpenSpec](openspec/changes/list-visible-tickets/proposal.md) y `GET /api/tickets` en la sección 4.
 
 #### HU-05 · Kanban de tickets
 

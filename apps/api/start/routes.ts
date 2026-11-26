@@ -15,6 +15,7 @@ router
   })
   .prefix('/api/auth')
 
+router.get('/api/tickets', [TicketsController, 'index'])
 router.post('/api/tickets', [TicketsController, 'store'])
 router.get('/api/tickets/:id', [TicketsController, 'show'])
 router.get('/api/tickets/:id/transitions', [TicketTransitionsController, 'index'])

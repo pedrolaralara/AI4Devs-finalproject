@@ -34,6 +34,21 @@ form {
   gap: 0.65rem;
 }
 
+.ticket-filters {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  align-items: end;
+}
+
+.ticket-filters label {
+  display: grid;
+  gap: 0.3rem;
+  align-self: start;
+}
+
+.ticket-filters label:first-child {
+  grid-column: 1 / -1;
+}
+
 label {
   font-weight: 600;
 }

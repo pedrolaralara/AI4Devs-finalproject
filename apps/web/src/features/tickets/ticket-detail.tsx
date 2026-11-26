@@ -1,17 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { getTicket, type TicketDetail } from './ticket-api'
+import { statuses } from './ticket-status'
 import { TicketWorkflow } from './ticket-workflow'
-
-const statuses: Record<TicketDetail['status'], string> = {
-  open: 'Abierto',
-  assigned: 'Asignado',
-  in_progress: 'En curso',
-  pending_user: 'Pendiente del usuario',
-  solved: 'Resuelto',
-  closed: 'Cerrado',
-  canceled: 'Cancelado',
-}
 
 const eventLabels: Record<TicketDetail['history'][number]['eventType'], string> = {
   created: 'Ticket creado',
@@ -122,6 +113,7 @@ type LoadState =
   | { kind: 'failed' }
 
 function TicketQuery({ id, onExpired }: { id: string; onExpired: () => void }) {
+  const { search } = useLocation()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
   const [conflict, setConflict] = useState(false)
   const loading = state.kind === 'loading'
@@ -178,6 +170,9 @@ function TicketQuery({ id, onExpired }: { id: string; onExpired: () => void }) {
       )}
       <p>
         <Link to="/">Volver al inicio</Link>
+      </p>
+      <p>
+        <Link to={`/tickets${search}`}>Volver a la lista</Link>
       </p>
     </>
   )
