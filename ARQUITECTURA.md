@@ -453,13 +453,13 @@ La CI también bloquea los hallazgos de Gitleaks en los commits introducidos y l
 3. PostgreSQL debe estar listo antes del arranque de la API. La API aplica las migraciones pendientes. Nginx comprueba la salud a través de `/api/health`, que a su vez comprueba PostgreSQL.
 4. El proxy TLS del servidor reenvía la URL pública de la aplicación al puerto local de la web. API y PostgreSQL solo reciben conexiones por la red de Compose.
 
-**Copias de seguridad (asumido):** volcado periódico de PostgreSQL (`pg_dump`) a un almacenamiento de la empresa. Se concretará con el despliegue.
+**Copias de seguridad y recuperación.** Antes de actualizar, se registra el commit y se guarda un volcado en formato personalizado de PostgreSQL. Para recuperar la versión, se reconstruyen sus imágenes y se restaura con `pg_restore` en un proyecto Compose con volumen nuevo. Se valida la salud y el contenido antes de cambiar el destino del proxy. Los comandos están en el [README](readme.md#recuperación-de-una-versión-y-sus-datos).
 
 ## 11. Conceptos transversales
 
 ### 11.1 Seguridad
 
-- **Autenticación:** sesión con cookie `HttpOnly`, `SameSite=Lax` y `Secure` en producción. AdonisJS guarda la sesión cifrada en la tabla técnica `sessions` de PostgreSQL y comprueba contraseñas con scrypt. El cierre revoca el acceso en el servidor. Docker Compose de desarrollo aplica las migraciones antes de arrancar la API.
+- **Autenticación:** sesión con cookie `HttpOnly`, `SameSite=Lax` y `Secure` en producción. La demo con URL HTTP de loopback permite cookies locales sin `Secure`. AdonisJS guarda la sesión cifrada en la tabla técnica `sessions` de PostgreSQL y comprueba contraseñas con scrypt. El cierre revoca el acceso en el servidor. Docker Compose de desarrollo aplica las migraciones antes de arrancar la API.
 - **CSRF:** shield de AdonisJS; la SPA envía `X-XSRF-TOKEN` en las peticiones que modifican datos.
 - **Autorización en el servidor:** políticas Bouncer y máquina de estados. La interfaz oculta acciones, pero la API las valida siempre.
 - **Validación de entradas** con VineJS en todos los endpoints; `additionalProperties: false` en los cuerpos.

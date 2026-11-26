@@ -1,5 +1,5 @@
-import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/shield'
+import { secureCookies } from '#config/cookie_transport'
 
 const shieldConfig = defineConfig({
   /**
@@ -43,7 +43,7 @@ const shieldConfig = defineConfig({
      * Expose an encrypted XSRF-TOKEN cookie for frontend HTTP clients.
      */
     enableXsrfCookie: true,
-    cookieOptions: { path: '/', sameSite: 'lax', secure: app.inProduction },
+    cookieOptions: { path: '/', sameSite: 'lax', secure: secureCookies },
 
     /**
      * HTTP methods protected by CSRF validation.
@@ -74,7 +74,7 @@ const shieldConfig = defineConfig({
     /**
      * Enable the Strict-Transport-Security header.
      */
-    enabled: true,
+    enabled: secureCookies,
 
     /**
      * HSTS policy duration remembered by browsers.
