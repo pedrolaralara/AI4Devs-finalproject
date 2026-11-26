@@ -287,6 +287,8 @@ sequenceDiagram
     end
 ```
 
+Al recargar, la SPA consulta `GET /api/auth/me`. La API obtiene el rol actual de PostgreSQL y devuelve `401` si la sesión ha caducado o la cuenta se ha desactivado. Para salir, la SPA envía `POST /api/auth/logout` con el token CSRF y vuelve al formulario tras el `204`. El servidor rechaza el acceso con la cookie anterior al cierre.
+
 ### 7.2 Crear un ticket
 
 ```mermaid

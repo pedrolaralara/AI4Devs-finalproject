@@ -1088,7 +1088,7 @@ Se documentan en detalle las tres historias en negrita: cubren el ciclo completo
 
 **Fuera de alcance**. Alta de usuarios, recuperación de contraseña, SSO, administración de cuentas y políticas específicas de tickets.
 
-**Contexto técnico**. Depende de las cuentas de PED-15. El [change de OpenSpec](openspec/changes/authenticate-users/proposal.md) enlaza el contrato HTTP y el diseño. El seguimiento está en [PED-8](https://linear.app/pedrolaralara/issue/PED-8).
+**Contexto técnico**. Depende de las cuentas de PED-15. La [matriz de trazabilidad de HU-00](openspec/changes/authenticate-users/proposal.md#trazabilidad) enlaza estos criterios con los escenarios, el contrato HTTP, el diseño y las pruebas. El seguimiento está en [PED-8](https://linear.app/pedrolaralara/issue/PED-8).
 
 ---
 

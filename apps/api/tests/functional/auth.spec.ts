@@ -65,6 +65,12 @@ test('logs in an active account and returns its profile')
       current.assertStatus(200)
       current.assertBody({ id: user.id, fullName: user.fullName, role: user.role })
 
+      user.role = role === 'requester' ? 'agent' : 'requester'
+      await user.save()
+      const updated = await client.get('/api/auth/me').header('Cookie', cookiePair(session))
+      updated.assertStatus(200)
+      updated.assertBody({ id: user.id, fullName: user.fullName, role: user.role })
+
       user.isActive = false
       await user.save()
       const inactive = await client.get('/api/auth/me').header('Cookie', cookiePair(session))

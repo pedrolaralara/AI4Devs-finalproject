@@ -17,5 +17,5 @@
 ## 4. Verificación (PED-69)
 
 - [x] 4.1 Automatizar el acceso, la recarga y el cierre en Chromium sobre la web, la API y PostgreSQL aislados (PED-75). Ejecutar Biome y TypeScript.
-- [ ] 4.2 Alinear el README y Arquitectura con el comportamiento verificado y registrar el uso de IA en `prompts.md`.
-- [ ] 4.3 Revisar la trazabilidad desde los criterios del README hasta la spec, el contrato HTTP, el OpenAPI generado, el diseño y las pruebas. Reejecutar las suites existentes (PED-76).
+- [x] 4.2 Alinear el README y Arquitectura con el comportamiento verificado y registrar el uso de IA en `prompts.md`.
+- [x] 4.3 Revisar la trazabilidad desde los criterios del README hasta la spec, el contrato HTTP, el OpenAPI generado, el diseño y las pruebas. Reejecutar las suites existentes (PED-76).
